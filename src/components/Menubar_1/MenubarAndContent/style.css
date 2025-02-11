@@ -1,0 +1,11 @@
+.menubar-and-content {
+  align-items: flex-start;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+}
+
+.menubar-and-content .menubar-instance {
+  flex: 0 0 auto !important;
+}

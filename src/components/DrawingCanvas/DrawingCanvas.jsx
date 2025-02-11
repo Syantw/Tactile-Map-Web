@@ -1,0 +1,525 @@
+import React, { useRef, useState, useEffect } from "react";
+
+const DrawingCanvas = ({
+  drawingMode,
+  selectedModes,
+  computeIntersections,
+  setComputeIntersections,
+  setWalls,
+}) => {
+  if (!drawingMode) return null;
+  const canvasRef = useRef(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [startPos, setStartPos] = useState({ x: 0, y: 0 });
+  const drawingsRef = useRef([]); // 存储所有绘制的图案
+  const [selectedShapeIndex, setSelectedShapeIndex] = useState(null); // 选中的图案索引
+  const [isDragging, setIsDragging] = useState(false);
+  const [offset, setOffset] = useState({ x: 0, y: 0 }); // 记录点击时的偏移量
+  const [intersections, setIntersections] = useState([]); // 存储交点
+
+  useEffect(() => {
+    if (computeIntersections) {
+      console.log("Computing intersections...");
+      computeAndDrawIntersections();
+      setComputeIntersections(false);
+    }
+
+    redrawCanvas();
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Delete" || e.key === "Backspace") {
+        deleteSelectedShape();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [drawingMode, selectedShapeIndex, selectedModes, computeIntersections]);
+
+  const redrawCanvas = (newIntersections = intersections) => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    drawingsRef.current.forEach((draw, index) => {
+      ctx.beginPath();
+      ctx.strokeStyle = index === selectedShapeIndex ? "blue" : "red"; // 选中高亮
+      ctx.lineWidth = 2;
+
+      if (draw.type === "line") {
+        ctx.moveTo(draw.start.x, draw.start.y);
+        ctx.lineTo(draw.end.x, draw.end.y);
+      } else if (draw.type === "rectangle") {
+        ctx.rect(
+          draw.start.x,
+          draw.start.y,
+          draw.end.x - draw.start.x,
+          draw.end.y - draw.start.y
+        );
+      } else if (draw.type === "horizontal") {
+        ctx.moveTo(0, draw.start.y);
+        ctx.lineTo(canvas.width, draw.start.y); // 横线跨满画布
+      } else if (draw.type === "vertical") {
+        ctx.moveTo(draw.start.x, 0);
+        ctx.lineTo(draw.start.x, canvas.height); // 竖线跨满画布
+      } else if (draw.type === "cross") {
+        ctx.moveTo(0, draw.start.y);
+        ctx.lineTo(canvas.width, draw.start.y); // 水平线
+        ctx.moveTo(draw.start.x, 0);
+        ctx.lineTo(draw.start.x, canvas.height); // 竖直线
+      }
+
+      ctx.stroke();
+    });
+
+    // 画交点
+    newIntersections.forEach(({ x, y }) => {
+      ctx.beginPath();
+      ctx.fillStyle = "yellow";
+      ctx.arc(x, y, 5, 0, 2 * Math.PI);
+      ctx.fill();
+    });
+  };
+
+  const handleMouseDown = (e) => {
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    if (drawingMode === "select") {
+      // 找到被点击的图案
+      const foundIndex = drawingsRef.current.findIndex(
+        (shape) =>
+          mouseX >= Math.min(shape.start.x, shape.end.x) &&
+          mouseX <= Math.max(shape.start.x, shape.end.x) &&
+          mouseY >= Math.min(shape.start.y, shape.end.y) &&
+          mouseY <= Math.max(shape.start.y, shape.end.y)
+      );
+
+      if (foundIndex !== -1) {
+        setSelectedShapeIndex(foundIndex);
+        setIsDragging(true);
+
+        // 计算鼠标点击时相对于图案的偏移量
+        const shape = drawingsRef.current[foundIndex];
+        setOffset({
+          x: mouseX - shape.start.x,
+          y: mouseY - shape.start.y,
+        });
+      } else {
+        setSelectedShapeIndex(null);
+      }
+
+      redrawCanvas();
+      return;
+    } else {
+      setIsDrawing(true);
+      setStartPos({ x: mouseX, y: mouseY });
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (isDragging && selectedShapeIndex !== null) {
+      const canvas = canvasRef.current;
+      const rect = canvas.getBoundingClientRect();
+      const currentX = e.clientX - rect.left;
+      const currentY = e.clientY - rect.top;
+
+      // 计算新的起点和终点
+      const selectedShape = drawingsRef.current[selectedShapeIndex];
+      const width = selectedShape.end.x - selectedShape.start.x;
+      const height = selectedShape.end.y - selectedShape.start.y;
+
+      selectedShape.start.x = currentX - offset.x;
+      selectedShape.start.y = currentY - offset.y;
+      selectedShape.end.x = selectedShape.start.x + width;
+      selectedShape.end.y = selectedShape.start.y + height;
+
+      redrawCanvas();
+      return;
+    }
+
+    if (!isDrawing) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    const rect = canvas.getBoundingClientRect();
+    const currentX = e.clientX - rect.left;
+    const currentY = e.clientY - rect.top;
+
+    redrawCanvas(); // 先绘制已有图案，再绘制当前图案
+
+    ctx.beginPath();
+    ctx.strokeStyle = "blue";
+    ctx.lineWidth = 2;
+
+    if (drawingMode === "line") {
+      ctx.moveTo(startPos.x, startPos.y);
+      ctx.lineTo(currentX, currentY);
+    } else if (drawingMode === "rectangle") {
+      ctx.rect(
+        startPos.x,
+        startPos.y,
+        currentX - startPos.x,
+        currentY - startPos.y
+      );
+    } else if (drawingMode === "horizontal-line") {
+      ctx.moveTo(startPos.x, startPos.y);
+      ctx.lineTo(currentX, startPos.y);
+    } else if (drawingMode === "vertical-line") {
+      ctx.moveTo(startPos.x, startPos.y);
+      ctx.lineTo(startPos.x, currentY);
+    }
+
+    ctx.stroke();
+  };
+
+  const handleMouseUp = (e) => {
+    if (isDragging) {
+      setIsDragging(false);
+      return;
+    }
+
+    if (drawingMode === "select") {
+      return; // 选择模式下不创建新图形，但允许鼠标释放
+    }
+
+    setIsDrawing(false);
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const endX = e.clientX - rect.left;
+    const endY = e.clientY - rect.top;
+
+    let type = "line"; // 默认普通线条
+    let finalEndX = endX;
+    let finalEndY = endY;
+
+    if (drawingMode === "line") {
+      if (
+        selectedModes.includes("Horizontal") &&
+        selectedModes.includes("Vertical")
+      ) {
+        type = "cross";
+        finalEndX = canvas.width;
+        finalEndY = canvas.height;
+      } else if (selectedModes.includes("Horizontal")) {
+        type = "horizontal";
+        finalEndX = canvas.width;
+        finalEndY = startPos.y;
+      } else if (selectedModes.includes("Vertical")) {
+        type = "vertical";
+        finalEndX = startPos.x;
+        finalEndY = canvas.height;
+      }
+    } else if (drawingMode === "rectangle") {
+      type = "rectangle";
+    }
+    drawingsRef.current.push({
+      type,
+      start: startPos,
+      end: { x: finalEndX, y: finalEndY },
+    });
+
+    redrawCanvas();
+  };
+
+  const deleteSelectedShape = () => {
+    if (selectedShapeIndex !== null) {
+      drawingsRef.current.splice(selectedShapeIndex, 1); // 删除选中的图案
+      setSelectedShapeIndex(null);
+      redrawCanvas();
+    }
+  };
+
+  //   Draw Intersection
+  const computeAndDrawIntersections = () => {
+    console.log("🔬 Analyzing intersections...");
+    console.log("📌 Total drawn shapes:", drawingsRef.current.length);
+
+    let newIntersections = [];
+    let newWalls = [];
+
+    for (let i = 0; i < drawingsRef.current.length; i++) {
+      for (let j = i + 1; j < drawingsRef.current.length; j++) {
+        console.log(
+          "Checking intersection between:",
+          drawingsRef.current[i],
+          drawingsRef.current[j]
+        );
+        const intersection = findIntersection(
+          drawingsRef.current[i],
+          drawingsRef.current[j]
+        );
+        if (intersection) {
+          newIntersections.push(intersection);
+          console.log(
+            `✅ Intersection found at: (${intersection.x}, ${intersection.y})`
+          );
+        }
+      }
+    }
+
+    // // 计算墙壁
+    // if (newIntersections.length > 1) {
+    //   const computedWalls = computeWalls(newIntersections);
+    //   setWalls(computedWalls);
+    //   console.log("🧱 Walls computed:", computedWalls);
+    // }
+    // 生成墙体数据
+    newWalls = generateWallsFromIntersections(newIntersections);
+    setWalls(newWalls); // 更新主页面的墙体数据
+
+    setIntersections(newIntersections);
+    redrawCanvas(newIntersections);
+  };
+
+  const findIntersection = (shape1, shape2) => {
+    console.log("🔍 Checking intersection between:", shape1, shape2);
+
+    // **计算线段之间的交点（包括自由线段）**
+    if (shape1.type === "line" && shape2.type === "line") {
+      return getLineIntersection(
+        shape1.start,
+        shape1.end,
+        shape2.start,
+        shape2.end
+      );
+    }
+
+    // **确保水平线和竖直线都能计算交点**
+    if (shape1.type === "horizontal" || shape2.type === "horizontal") {
+      return getHorizontalIntersection(shape1, shape2);
+    }
+    if (shape1.type === "vertical" || shape2.type === "vertical") {
+      return getVerticalIntersection(shape1, shape2);
+    }
+
+    // **计算矩形交点**
+    if (shape1.type === "rectangle" || shape2.type === "rectangle") {
+      return getRectangleIntersection(shape1, shape2);
+    }
+
+    // **计算十字交点**
+    if (shape1.type === "cross") {
+      return getCrossIntersection(shape1, shape2);
+    }
+    if (shape2.type === "cross") {
+      return getCrossIntersection(shape2, shape1);
+    }
+
+    console.log("❌ No intersection found.");
+    return null;
+  };
+
+  const getHorizontalIntersection = (horizontal, shape) => {
+    const y = horizontal.start.y;
+    let intersection = null;
+
+    if (shape.type === "line") {
+      intersection = getLineIntersection(
+        { x: 0, y: y },
+        { x: canvasRef.current.width, y: y },
+        shape.start,
+        shape.end
+      );
+    } else if (shape.type === "vertical") {
+      intersection = { x: shape.start.x, y: y }; // ✅ 修正交点计算
+    } else if (shape.type === "rectangle") {
+      intersection = getRectangleIntersection(shape, horizontal);
+    }
+
+    return intersection;
+  };
+  const getVerticalIntersection = (vertical, shape) => {
+    const x = vertical.start.x;
+    let intersection = null;
+
+    if (shape.type === "line") {
+      intersection = getLineIntersection(
+        { x: x, y: 0 },
+        { x: x, y: canvasRef.current.height },
+        shape.start,
+        shape.end
+      );
+    } else if (shape.type === "horizontal") {
+      intersection = { x: x, y: shape.start.y }; // ✅ 修正交点计算
+    } else if (shape.type === "rectangle") {
+      intersection = getRectangleIntersection(shape, vertical);
+    }
+
+    return intersection;
+  };
+  const getRectangleIntersection = (rect, shape) => {
+    const rectEdges = [
+      {
+        start: { x: rect.start.x, y: rect.start.y },
+        end: { x: rect.end.x, y: rect.start.y },
+      }, // 顶边
+      {
+        start: { x: rect.end.x, y: rect.start.y },
+        end: { x: rect.end.x, y: rect.end.y },
+      }, // 右边
+      {
+        start: { x: rect.end.x, y: rect.end.y },
+        end: { x: rect.start.x, y: rect.end.y },
+      }, // 底边
+      {
+        start: { x: rect.start.x, y: rect.end.y },
+        end: { x: rect.start.x, y: rect.start.y },
+      }, // 左边
+    ];
+
+    let intersections = [];
+
+    rectEdges.forEach((edge) => {
+      let intersection = null;
+
+      if (shape.type === "horizontal") {
+        intersection = getLineIntersection(
+          edge.start,
+          edge.end,
+          { x: 0, y: shape.start.y },
+          { x: canvasRef.current.width, y: shape.start.y }
+        );
+      } else if (shape.type === "vertical") {
+        intersection = getLineIntersection(
+          edge.start,
+          edge.end,
+          { x: shape.start.x, y: 0 },
+          { x: shape.start.x, y: canvasRef.current.height }
+        );
+      } else {
+        intersection = getLineIntersection(
+          edge.start,
+          edge.end,
+          shape.start,
+          shape.end
+        );
+      }
+
+      if (intersection) {
+        intersections.push(intersection);
+      }
+    });
+
+    return intersections.length > 0 ? intersections : null;
+  };
+
+  const getLineIntersection = (p1, p2, p3, p4) => {
+    const a1 = p2.y - p1.y;
+    const b1 = p1.x - p2.x;
+    const c1 = a1 * p1.x + b1 * p1.y;
+
+    const a2 = p4.y - p3.y;
+    const b2 = p3.x - p4.x;
+    const c2 = a2 * p3.x + b2 * p3.y;
+
+    const determinant = a1 * b2 - a2 * b1;
+    if (determinant === 0) {
+      return null; // 平行
+    }
+
+    const x = (b2 * c1 - b1 * c2) / determinant;
+    const y = (a1 * c2 - a2 * c1) / determinant;
+
+    if (
+      Math.min(p1.x, p2.x) <= x &&
+      x <= Math.max(p1.x, p2.x) &&
+      Math.min(p1.y, p2.y) <= y &&
+      y <= Math.max(p1.y, p2.y) &&
+      Math.min(p3.x, p4.x) <= x &&
+      x <= Math.max(p3.x, p4.x) &&
+      Math.min(p3.y, p4.y) <= y &&
+      y <= Math.max(p3.y, p4.y)
+    ) {
+      return { x, y };
+    }
+    return null;
+  };
+  const getCrossIntersection = (cross, shape) => {
+    console.log(
+      `🔎 Checking cross intersection: Cross(${cross.start.x}, ${cross.start.y})`
+    );
+
+    const crossLines = [
+      {
+        start: { x: 0, y: cross.start.y },
+        end: { x: canvasRef.current.width, y: cross.start.y },
+      }, // 水平线
+      {
+        start: { x: cross.start.x, y: 0 },
+        end: { x: cross.start.x, y: canvasRef.current.height },
+      }, // 竖直线
+    ];
+
+    let intersections = [];
+
+    crossLines.forEach((line) => {
+      let intersection = null;
+
+      if (shape.type === "horizontal") {
+        intersection = getLineIntersection(
+          line.start,
+          line.end,
+          { x: 0, y: shape.start.y },
+          { x: canvasRef.current.width, y: shape.start.y }
+        );
+      } else if (shape.type === "vertical") {
+        intersection = getLineIntersection(
+          line.start,
+          line.end,
+          { x: shape.start.x, y: 0 },
+          { x: shape.start.x, y: canvasRef.current.height }
+        );
+      } else {
+        intersection = getLineIntersection(
+          line.start,
+          line.end,
+          shape.start,
+          shape.end
+        );
+      }
+
+      if (intersection) {
+        intersections.push(intersection);
+      }
+    });
+
+    if (intersections.length > 0) {
+      console.log(
+        `✅ Cross intersection found at: ${JSON.stringify(intersections)}`
+      );
+      return intersections;
+    }
+
+    console.log("❌ No intersection with cross.");
+    return null;
+  };
+
+  const generateWallsFromIntersections = (intersections) => {
+    return intersections.map((intersection, index) => ({
+      id: index + 1,
+      position: intersection,
+    }));
+  };
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={1300}
+      height={1300}
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        zIndex: 1,
+      }}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+    />
+  );
+};
+
+export default DrawingCanvas;

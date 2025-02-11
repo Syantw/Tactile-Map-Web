@@ -1,0 +1,32 @@
+.menubar-item {
+  align-items: flex-start;
+  display: inline-flex;
+  padding: 6px 12px;
+  position: relative;
+  cursor: pointer; /* 让用户知道可以点击 */
+  transition: background 0.2s ease-in-out; /* 平滑过渡 */
+  border-radius: 4px;
+}
+
+.menubar-item .file {
+  color: #000000;
+  font-family: var(--subtle-medium-font-family);
+  font-size: var(--subtle-medium-font-size);
+  font-style: var(--subtle-medium-font-style);
+  font-weight: var(--subtle-medium-font-weight);
+  letter-spacing: var(--subtle-medium-letter-spacing);
+  line-height: var(--subtle-medium-line-height);
+  margin-top: -1px;
+  position: relative;
+  white-space: nowrap;
+  width: fit-content;
+}
+
+.menubar-item.selected {
+  background-color: var(--slate-100);
+  border-radius: 4px;
+}
+
+.menubar-item.default {
+  background-color: #ffffff;
+}

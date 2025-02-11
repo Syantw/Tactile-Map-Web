@@ -1,0 +1,33 @@
+.state-selected-wrapper {
+  align-items: flex-start;
+  border-radius: 3px;
+  display: inline-flex;
+  gap: 10px;
+  padding: 6px 12px;
+  position: relative;
+}
+
+.state-selected-wrapper .selected-3 {
+  font-family: var(--subtle-medium-font-family);
+  font-size: var(--subtle-medium-font-size);
+  font-style: var(--subtle-medium-font-style);
+  font-weight: var(--subtle-medium-font-weight);
+  letter-spacing: var(--subtle-medium-letter-spacing);
+  line-height: var(--subtle-medium-line-height);
+  margin-top: -1px;
+  position: relative;
+  white-space: nowrap;
+  width: fit-content;
+}
+
+.state-selected-wrapper.state-selected {
+  background-color: #ffffff;
+}
+
+.state-selected-wrapper.state-selected .selected-3 {
+  color: var(--slate-900);
+}
+
+.state-selected-wrapper.state-unselected .selected-3 {
+  color: var(--slate-700);
+}

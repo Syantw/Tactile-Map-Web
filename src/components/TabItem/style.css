@@ -1,0 +1,38 @@
+.tab-item {
+  align-items: center;
+  border-radius: 3px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  padding: 6px 18px;
+  position: relative;
+  width: 159px;
+}
+
+.tab-item .selected-2 {
+  font-family: "Inter", Helvetica;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 20px;
+  margin-top: -1px;
+  position: relative;
+  white-space: nowrap;
+  width: fit-content;
+}
+
+.tab-item.unselect-manual {
+  background-color: #f1f5f9;
+}
+
+.tab-item.select-auto {
+  background-color: #3274f6;
+}
+
+.tab-item.unselect-manual .selected-2 {
+  color: #334155;
+}
+
+.tab-item.select-auto .selected-2 {
+  color: #ffffff;
+}

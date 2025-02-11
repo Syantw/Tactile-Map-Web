@@ -1,0 +1,56 @@
+.radio-group {
+  height: 18px;
+  position: relative;
+  width: 112px;
+}
+
+.radio-group .vertical-line {
+  color: #505050;
+  font-family: "Poppins", Helvetica;
+  font-size: 12px;
+  font-weight: 600;
+  left: 37px;
+  letter-spacing: 0;
+  line-height: normal;
+  position: absolute;
+  top: -1px;
+}
+
+.radio-group .vector-wrapper {
+  background-color: #3274f6;
+  border: 1px solid;
+  border-color: #afafaf;
+  border-radius: 5px;
+  height: 17px;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 17px;
+}
+
+.radio-group .vector {
+  height: 6px;
+  left: 4px;
+  position: absolute;
+  top: 4px;
+  width: 8px;
+}
+
+.radio-group .rectangle {
+  border: 1px solid;
+  border-color: #afafaf;
+  border-radius: 5px;
+  height: 17px;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 17px;
+}
+
+.radio-group .img {
+  height: 5px;
+  left: -7858px;
+  position: absolute;
+  top: 2347px;
+  width: 7px;
+}

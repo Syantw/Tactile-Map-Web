@@ -1,0 +1,40 @@
+.select {
+  align-items: center;
+  background-color: #e2e8f0;
+  border-radius: 3px;
+  display: flex;
+  gap: 10px;
+  height: 39px;
+  justify-content: center;
+  padding: 10px 20px;
+  position: relative;
+  width: 150px;
+}
+
+.select .ant-design-select {
+  height: 16px;
+  margin-left: -4.5px;
+  position: relative;
+  width: 16px;
+}
+
+.select .text-wrapper-2 {
+  color: #ffffff;
+  font-family: "Poppins", Helvetica;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: normal;
+  margin-right: -4.5px;
+  margin-top: -0.5px;
+  position: relative;
+  width: fit-content;
+}
+
+.select.default {
+  background-color: #3274f6;
+}
+
+.select.unselect {
+  background-color: #e2e8f0;
+}

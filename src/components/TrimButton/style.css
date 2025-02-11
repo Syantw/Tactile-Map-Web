@@ -1,0 +1,25 @@
+.trim-button {
+  align-items: center;
+  background-color: #82a7f1;
+  border-radius: 8px;
+  display: flex;
+  gap: 7px;
+  height: 29px;
+  justify-content: center;
+  padding: 10px 20px;
+  position: relative;
+  width: 116px;
+}
+
+.trim-button .go {
+  color: #ffffff;
+  font-family: "Poppins", Helvetica;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: normal;
+  margin-bottom: -3.5px;
+  margin-top: -5.5px;
+  position: relative;
+  width: fit-content;
+}

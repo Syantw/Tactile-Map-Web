@@ -1,0 +1,38 @@
+.line {
+  align-items: center;
+  background-color: #3274f6;
+  border-radius: 3px;
+  display: flex;
+  gap: 10px;
+  height: 39px;
+  justify-content: center;
+  padding: 10px 20px;
+  position: relative;
+  width: 150px;
+}
+
+.line .mingcute-pen-line {
+  height: 15px;
+  position: relative;
+  width: 15px;
+}
+
+.line .text-wrapper {
+  color: #ffffff;
+  font-family: "Poppins", Helvetica;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: normal;
+  margin-top: -0.5px;
+  position: relative;
+  width: fit-content;
+}
+
+.line.default {
+  background-color: #3274f6;
+}
+
+.line.unselect {
+  background-color: #e2e8f0;
+}

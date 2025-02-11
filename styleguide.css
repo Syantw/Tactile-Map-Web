@@ -1,0 +1,25 @@
+:root {
+  --black: rgba(0, 0, 0, 1);
+  --blue-connector: rgba(113, 150, 239, 1);
+  --div-shadow: 0px 30px 80px 0px rgba(0, 0, 0, 0.2);
+  --indicator: 0px 0px 50px 0px rgba(0, 0, 0, 1);
+  --slate-100: rgba(241, 245, 249, 1);
+  --slate-200: rgba(226, 232, 240, 1);
+  --slate-300: rgba(203, 213, 225, 1);
+  --slate-700: rgba(51, 65, 85, 1);
+  --slate-900: rgba(15, 23, 42, 1);
+  --small-font-family: "Inter", Helvetica;
+  --small-font-size: 14px;
+  --small-font-style: normal;
+  --small-font-weight: 500;
+  --small-letter-spacing: 0px;
+  --small-line-height: 14px;
+  --subtle-medium-font-family: "Inter", Helvetica;
+  --subtle-medium-font-size: 14px;
+  --subtle-medium-font-style: normal;
+  --subtle-medium-font-weight: 500;
+  --subtle-medium-letter-spacing: 0px;
+  --subtle-medium-line-height: 20px;
+  --variable-collection-accent: rgba(81, 0, 255, 1);
+  --white: rgba(255, 255, 255, 1);
+}
