@@ -19,10 +19,10 @@ Make sure you have the following installed on your system:
 ```sh
     git clone https://github.com/Syantw/Tactile-Map-Web.git
     cd your-repo-name
+```
 
-2. ***Install Dependencies***:
-`npm install`
-
+2. **_Install Dependencies_**:
+   `npm install`
 
 ### Run the project
 
@@ -31,18 +31,16 @@ To start the development server, run:
 
 By default the app runs at http://localhost:5173
 
-###Project Structure
-
+### Project Structure
 
 ### Dependencies
+
 📦 Dependencies
 
-This project uses the following main dependencies:
-	-	React - JavaScript library for UI development
-	-	Vite - Fast build tool for modern web projects
-    -   leaflet - a JavaScript library for interactive maps
+This project uses the following main dependencies: - React - JavaScript library for UI development - Vite - Fast build tool for modern web projects - leaflet - a JavaScript library for interactive maps
 
 Check the full list of dependencies in the package.json file.
 
+```
 
 ```
