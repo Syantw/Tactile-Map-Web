@@ -22,14 +22,20 @@ Make sure you have the following installed on your system:
 ```
 
 2. **_Install Dependencies_**:
-   `npm install`
+
+```sh
+npm install
+```
 
 ### Run the project
 
 To start the development server, run:
-`npm run dev`
 
-By default the app runs at http://localhost:5173
+```sh
+npm run dev
+```
+
+By default the app runs at http://localhost:5173.
 
 ### Project Structure
 
@@ -37,7 +43,11 @@ By default the app runs at http://localhost:5173
 
 📦 Dependencies
 
-This project uses the following main dependencies: - React - JavaScript library for UI development - Vite - Fast build tool for modern web projects - leaflet - a JavaScript library for interactive maps
+This project uses the following main dependencies:
+
+- React - JavaScript library for UI development
+- Vite - Fast build tool for modern web projects
+- leaflet - a JavaScript library for interactive maps
 
 Check the full list of dependencies in the package.json file.
 
