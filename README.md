@@ -41,8 +41,6 @@ By default the app runs at http://localhost:5173.
 
 ### Dependencies
 
-📦 Dependencies
-
 This project uses the following main dependencies:
 
 - React - JavaScript library for UI development
@@ -50,7 +48,3 @@ This project uses the following main dependencies:
 - leaflet - a JavaScript library for interactive maps
 
 Check the full list of dependencies in the package.json file.
-
-```
-
-```
