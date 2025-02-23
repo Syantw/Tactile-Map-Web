@@ -9,12 +9,18 @@
     "build": "vite build"
   },
   "dependencies": {
+    "bootstrap": "^5.3.3",
+    "hull.js": "^1.0.6",
+    "konva": "^9.3.18",
     "leaflet": "^1.9.4",
     "prop-types": "^15.8.1",
     "react": "^19.0.0",
+    "react-bootstrap": "^2.10.9",
     "react-dom": "^19.0.0",
+    "react-konva": "^19.0.3",
     "react-leaflet": "^5.0.0",
-    "react-router-dom": "^6.8.1"
+    "react-router-dom": "^6.8.1",
+    "simplify-js": "^1.2.4"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "4.3.4",

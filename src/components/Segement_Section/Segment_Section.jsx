@@ -14,8 +14,8 @@ const Segment_Section = ({
   walls,
 }) => {
   return (
-    <div className="frame-10">
-      <div className="text-wrapper-8">Segment</div>
+    <div className="segmentSelection">
+      <div className="h1">Segment</div>
 
       {/* Segment Controls */}
       <div className="segment-controls">
@@ -35,22 +35,20 @@ const Segment_Section = ({
 
       {/* Radio Buttons for Line Selection */}
       <div className="frame-11">
-        <div className="frame-12">
-          <RadioGroup
-            text="Horizontal"
-            vector="https://c.animaapp.com/UTvzRI5U/img/vector-21-5.svg"
-            selectedOptions={selectedModes}
-            onChange={handleModeChange}
-            isControlled={drawingMode === "line"}
-          />
-          <RadioGroup
-            text="Vertical"
-            vector="https://c.animaapp.com/UTvzRI5U/img/vector-21-5.svg"
-            selectedOptions={selectedModes}
-            onChange={handleModeChange}
-            isControlled={drawingMode === "line"}
-          />
-        </div>
+        <RadioGroup
+          text="Horizontal"
+          vector="https://c.animaapp.com/UTvzRI5U/img/vector-21-5.svg"
+          selectedOptions={selectedModes}
+          onChange={handleModeChange}
+          isControlled={drawingMode === "line"}
+        />
+        <RadioGroup
+          text="Vertical"
+          vector="https://c.animaapp.com/UTvzRI5U/img/vector-21-5.svg"
+          selectedOptions={selectedModes}
+          onChange={handleModeChange}
+          isControlled={drawingMode === "line"}
+        />
       </div>
 
       {/* Compute and Generate Buttons */}
@@ -64,6 +62,12 @@ const Segment_Section = ({
         className="generate-button-instance"
         onClick={handleComputeIntersections}
         Type="Generate"
+      />
+
+      <img
+        className="vector-3"
+        alt="Vector"
+        src="https://c.animaapp.com/UTvzRI5U/img/vector-21-6.svg"
       />
     </div>
   );

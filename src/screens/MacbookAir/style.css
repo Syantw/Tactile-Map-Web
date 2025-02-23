@@ -47,10 +47,12 @@
 
 /* New map container replacing overlap-2 */
 .map-container {
-  height: 100vh; /* Same height as previous image */
-  width: 100%; /* Same width as previous image */
-  position: relative;
-  z-index: -1; /* Lowest layer */
+  width: 70vw; /* 与 FloorMap 一致 */
+  height: 100vh;
+  padding: 0; /* 移除内边距 */
+  margin: 0; /* 移除外边距 */
+  border: none; /* 移除边框 */
+  overflow: hidden; /* 防止溢出 */
 }
 
 .macbook-air.ui-overlay {
@@ -203,14 +205,14 @@
   display: flex;
   height: 100vh;
   position: relative;
-  width: 434px;
+  width: 30vw;
   z-index: 2;
 }
 
 .macbook-air .overlap-4 {
   height: 100%;
   position: relative;
-  width: 436px;
+  width: 30vw;
 }
 
 .macbook-air .rectangle-3 {
@@ -220,24 +222,18 @@
   left: 0;
   position: absolute;
   top: 0;
-  width: 434px;
-}
-
-.macbook-air .group-6 {
-  display: flex;
-  height: 94px;
-  left: 0;
-  position: relative;
-  top: 0;
-  width: 436px;
+  width: 30vw;
 }
 
 .macbook-air .overlap-group-2 {
   background-color: #f9f9f9;
   border-radius: 20px;
-  height: 94px;
   position: relative;
-  width: 434px;
+  width: 100%;
+  display: flex;
+  height: 94px;
+  left: 0;
+  top: 0;
 }
 
 .macbook-air .text-wrapper-5 {
@@ -245,64 +241,57 @@
   font-family: "Poppins", Helvetica;
   font-size: 22px;
   font-weight: 600;
-  left: 160px;
   letter-spacing: 0;
   line-height: normal;
-  position: absolute;
-  top: 41px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 150px;
 }
 
 .macbook-air .annotator {
   position: relative; /* Keeps everything positioned relative to this container */
   display: flex;
   flex-direction: column;
+  justify-content: start;
+  align-items: stretch;
   width: 100%;
   height: 100%; /* Make sure it takes up the full space */
 }
 
-.macbook-air .frame-3 {
-  align-items: center;
+.annotator_content {
   display: flex;
   flex-grow: 1;
   flex-direction: column;
-  gap: 25px;
-  left: 0;
-  position: relative;
-  width: 434px;
+  justify-content: start;
+  align-items: center;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  gap: 10px; /* 子项间距 */
+  overflow-y: auto; /* 如果内容溢出，允许滚动 */
 }
 
-.macbook-air .frame-4 {
+.macbook-air .viewSelection {
   align-items: center;
-  display: inline-flex;
+  display: flex;
   flex: 0 0 auto;
   flex-direction: column;
   gap: 14px;
   position: relative;
+  height: fit-content;
+  width: 90%;
 }
 
-.macbook-air .frame-wrapper {
-  height: 113px;
-  position: relative;
-  width: 367px;
-}
-
-.macbook-air .frame-5 {
-  align-items: flex-start;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 9px 32px;
-  position: relative;
-  top: 63px;
-  width: 329px;
-}
-
-.macbook-air .frame-6 {
+.macbook-air .viewRadio {
   align-items: center;
-  display: inline-flex;
   flex: 0 0 auto;
   gap: 69px;
   margin-right: -28px;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  padding: 9px 32px;
   position: relative;
 }
 
@@ -320,19 +309,15 @@
   width: 434.5px;
 }
 
-.macbook-air .floorplan-myhouse {
+.macbook-air .h1 {
+  display: flex;
   color: transparent;
+  align-self: stretch;
   font-family: "Poppins", Helvetica;
   font-size: 16px;
   font-weight: 500;
-  left: 35px;
   letter-spacing: 0;
   line-height: normal;
-  position: absolute;
-  top: 24px;
-}
-
-.macbook-air .span {
   color: #4b4b4b;
 }
 
@@ -341,13 +326,15 @@
   text-decoration: underline;
 }
 
-.macbook-air .frame-7 {
+.macbook-air .trimSelection {
   align-items: center;
-  display: inline-flex;
+  display: flex;
   flex: 0 0 auto;
   flex-direction: column;
-  gap: 25px;
+  gap: 14px;
   position: relative;
+  height: fit-content;
+  width: 90%;
 }
 
 .macbook-air .frame-8 {
@@ -382,13 +369,23 @@
   width: unset !important;
 }
 
-.macbook-air .frame-9 {
+.macbook-air .trimMethod {
   align-items: center;
+  justify-content: space-around;
   display: flex;
   flex: 0 0 auto;
   gap: 65px;
   position: relative;
-  width: 286px;
+}
+
+.macbook-air .segmentSelection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  height: fit-content;
+  position: relative;
+  width: 90%;
 }
 
 .macbook-air .radio-group-2 {
@@ -405,37 +402,16 @@
   top: 1172px !important;
 }
 
-.macbook-air .trim-button-instance {
-  margin-right: -7px !important;
-}
-
-.macbook-air .frame-10 {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  height: fit-content;
-  position: relative;
-  width: 367px;
-}
-
-.macbook-air .text-wrapper-8 {
-  display: flex;
-  color: #4b4b4b;
-  font-family: "Poppins", Helvetica;
-  font-size: 16px;
-  font-weight: 500;
-  left: 3px;
-  letter-spacing: 0;
-  line-height: normal;
-  position: relative;
-}
-
 .macbook-air .frame-11 {
-  display: flex;
-  height: fit-content;
-  left: 0;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 69px;
+  margin-right: -28px;
   position: relative;
-  width: 367px;
+  display: flex;
+  flex-direction: row;
+  padding: 9px 32px;
+  position: relative;
 }
 
 .macbook-air .frame-12 {
@@ -488,7 +464,6 @@
 .macbook-air .segment-controls {
   display: flex;
   height: 59px;
-  left: -5px;
   position: relative;
   top: auto;
   justify-content: space-around;
@@ -513,118 +488,29 @@
 
 .macbook-air .computer-button-instance {
   display: flex;
-  left: 30px !important;
+  justify-content: center;
   position: relative !important;
 }
 
 .macbook-air .generate-button-instance {
   display: flex;
-  left: 30px !important;
-  position: relative !important;
-  top: auto;
-}
-
-.macbook-air .group-11 {
-  height: 805px;
-  position: relative;
-  width: 352px;
-  display: flex;
   justify-content: center;
-  /* gap: 15px; */
+  position: relative !important;
 }
 
-.macbook-air .entrance-location {
-  color: #575757;
-  font-family: "Poppins", Helvetica;
-  font-size: 10px;
-  font-weight: 400;
-  left: 38px;
-  letter-spacing: 0;
-  line-height: normal;
-  opacity: 0.5;
-  position: absolute;
-  top: 232px;
-}
-
-.macbook-air .p {
-  color: #575757;
-  font-family: "Poppins", Helvetica;
-  font-size: 10px;
-  font-weight: 400;
-  left: 38px;
-  letter-spacing: 0;
-  line-height: normal;
-  opacity: 0.5;
-  position: absolute;
-  top: 274px;
-}
-
-.macbook-air .entrance-location-2 {
-  color: #575757;
-  font-family: "Poppins", Helvetica;
-  font-size: 10px;
-  font-weight: 400;
-  left: 38px;
-  letter-spacing: 0;
-  line-height: normal;
-  opacity: 0.5;
-  position: absolute;
-  top: 253px;
-}
-
-.macbook-air .text-wrapper-9 {
-  color: var(--black);
-  font-family: "Poppins", Helvetica;
-  font-size: 12px;
-  font-weight: 400;
-  left: 14px;
-  letter-spacing: 0;
-  line-height: normal;
-  opacity: 0.5;
-  position: absolute;
-  top: 81px;
-}
-
-.macbook-air .text-wrapper-10 {
-  color: var(--black);
-  font-family: "Poppins", Helvetica;
-  font-size: 12px;
-  font-weight: 400;
-  left: 14px;
-  letter-spacing: 0;
-  line-height: normal;
-  opacity: 0.5;
-  position: absolute;
-  top: 159px;
-}
-
-.macbook-air .text-wrapper-11 {
-  color: var(--black);
-  font-family: "Poppins", Helvetica;
-  font-size: 12px;
-  font-weight: 400;
-  left: 14px;
-  letter-spacing: 0;
-  line-height: normal;
-  opacity: 0.5;
-  position: absolute;
-  top: 313px;
-}
-
-.macbook-air .text-wrapper-12 {
-  color: var(--black);
-  font-family: "Poppins", Helvetica;
-  font-size: 12px;
-  font-weight: 400;
-  left: 199px;
-  letter-spacing: 0;
-  line-height: normal;
-  opacity: 0.5;
-  position: absolute;
-  top: 81px;
+.macbook-air .labelSelection {
+  height: fit-content;
+  position: relative;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 25px;
 }
 
 .macbook-air .text-wrapper-13 {
+  display: flex;
   color: #4b4b4b;
   font-family: "Poppins", Helvetica;
   font-size: 16px;
@@ -632,15 +518,135 @@
   left: 0;
   letter-spacing: 0;
   line-height: normal;
-  position: absolute;
-  top: 0;
+  align-self: stretch;
 }
 
-.macbook-air .dropdown {
-  position: absolute;
-  top: 40px;
+.macbook-air .entrance {
   display: flex;
+  flex-direction: column;
+  gap: 15px;
   justify-content: center;
+  width: 90%;
+  align-items: center;
+}
+
+.macbook-air .text-wrapper-10 {
+  align-self: stretch;
+  display: flex;
+  color: var(--black);
+  font-family: "Poppins", Helvetica;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: normal;
+  opacity: 0.5;
+}
+
+.macbook-air .entrance_selector {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 90%;
+}
+
+.macbook-air .entrance-input {
+  align-self: center;
+  align-items: center;
+  background-color: #f4f4f4;
+  border: 1px solid;
+  border-color: #b8b8b8;
+  border-radius: 3px;
+  display: flex;
+  gap: 10px;
+  height: 29px;
+  padding: 10px;
+  width: 80%;
+}
+
+.macbook-air .entrance_list {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  gap: 10px;
+}
+
+.macbook-air .entrance-location {
+  display: flex;
+  color: #575757;
+  font-family: "Poppins", Helvetica;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: normal;
+  opacity: 0.5;
+  padding: 0;
+  margin: 0;
+}
+
+.macbook-air .text-wrapper-11 {
+  display: flex;
+  color: var(--black);
+  font-family: "Poppins", Helvetica;
+  font-size: 12px;
+  font-weight: 400;
+  left: 14px;
+  letter-spacing: 0;
+  line-height: normal;
+  opacity: 0.5;
+}
+
+.macbook-air .info {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 90%;
+}
+
+.macbook-air .info-input {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.macbook-air .info-enter {
+  align-items: center;
+  background-color: #f4f4f4;
+  border: 1px solid;
+  border-color: #b8b8b8;
+  border-radius: 3px;
+  display: flex;
+  gap: 10px;
+  height: 29px;
+  padding: 10px;
+  width: 126px;
+}
+
+.macbook-air .facilities {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  width: 90%;
+}
+
+.macbook-air .description {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  width: 90%;
+}
+.macbook-air .dropdown {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid;
+  border-color: #00000033;
+  border-radius: 50px;
+  height: 28px;
+  position: relative;
+  width: 280px;
 }
 
 .macbook-air .lucide-locate-wrapper {
@@ -661,12 +667,12 @@
   width: 14px;
 }
 
-.macbook-air .group-12 {
-  height: 165px;
-  left: 15px;
-  position: absolute;
-  top: 478px;
-  width: 318px;
+.macbook-air .facilitySelection {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
 .macbook-air .text-input {
@@ -682,19 +688,6 @@
   width: 301px;
 }
 
-.macbook-air .text-wrapper-14 {
-  color: var(--black);
-  font-family: "Poppins", Helvetica;
-  font-size: 12px;
-  font-weight: 400;
-  left: 0;
-  letter-spacing: 0;
-  line-height: normal;
-  opacity: 0.5;
-  position: absolute;
-  top: 0;
-}
-
 .macbook-air .frame-16 {
   height: 134px;
   left: -6311px;
@@ -703,23 +696,7 @@
   width: 301px;
 }
 
-.macbook-air .frame-17 {
-  align-items: center;
-  background-color: #f4f4f4;
-  border: 1px solid;
-  border-color: #b8b8b8;
-  border-radius: 3px;
-  display: flex;
-  gap: 10px;
-  height: 29px;
-  left: 28px;
-  padding: 10px;
-  position: absolute;
-  top: 106px;
-  width: 126px;
-}
-
-.macbook-air .text-wrapper-15 {
+.macbook-air .input-style {
   color: #c3c3c3;
   font-family: "Poppins", Helvetica;
   font-size: 12px;
@@ -730,22 +707,6 @@
   margin-top: -5.5px;
   position: relative;
   width: fit-content;
-}
-
-.macbook-air .frame-18 {
-  align-items: center;
-  background-color: #f4f4f4;
-  border: 1px solid;
-  border-color: #b8b8b8;
-  border-radius: 3px;
-  display: flex;
-  gap: 10px;
-  height: 29px;
-  left: 28px;
-  padding: 10px;
-  position: absolute;
-  top: 190px;
-  width: 301px;
 }
 
 .macbook-air .frame-19 {
@@ -795,8 +756,6 @@
 
 .macbook-air .frame-20 {
   align-items: center;
-  background-color: #3274f6;
-  border-radius: 10px;
   display: flex;
   gap: 7px;
   height: 29px;
@@ -931,12 +890,13 @@
   width: fit-content;
 }
 
-.macbook-air .group-wrapper {
-  height: 18px;
-  left: 15px;
-  position: absolute;
-  top: 670px;
-  width: 103px;
+.macbook-air .voiceAnnotation {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  width: 90%;
 }
 
 .macbook-air .group-14 {
@@ -1047,11 +1007,4 @@
   display: block;
   width: 100%;
   text-align: left;
-}
-
-.frame-3 {
-  max-height: 80vh; /* 让面板不会无限增长 */
-  overflow-y: auto; /* 允许垂直滚动 */
-  scrollbar-width: thin; /* 让滚动条更细 */
-  scrollbar-color: #888 transparent;
 }

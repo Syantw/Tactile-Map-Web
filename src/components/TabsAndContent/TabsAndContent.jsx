@@ -24,8 +24,6 @@ export const TabsAndContent = ({
   ),
 }) => {
   return (
-    <div className="tabs-and-content">
-      <Tabs className="tabs-instance" override={override} override1={tabs} />
-    </div>
+    <Tabs className="tabs-and-content" override={override} override1={tabs} />
   );
 };

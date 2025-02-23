@@ -1,12 +1,12 @@
 .tabs-and-content {
   align-items: center;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 8px;
   height: 33px;
-  justify-content: center;
+  justify-content: space-around;
   position: relative;
-  width: 328px;
+  width: 100%;
 }
 
 .tabs-and-content .tabs-instance {

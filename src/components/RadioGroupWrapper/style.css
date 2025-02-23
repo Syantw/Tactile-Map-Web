@@ -1,5 +1,4 @@
 .radio-group-wrapper {
-  align-items: flex-start;
   display: inline-flex;
   flex-direction: column;
   gap: 8px;

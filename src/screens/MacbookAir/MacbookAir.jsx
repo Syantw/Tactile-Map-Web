@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { ComputerButton } from "../../components/ComputerButton";
 import { Indicators } from "../../components/Indicators";
 import { Line } from "../../components/Segment/Line";
@@ -16,7 +16,12 @@ import DrawingCanvas from "../../components/DrawingCanvas/DrawingCanvas"; // 引
 import WallList from "../../components/WallList/WallList";
 import Segment_Section from "../../components/Segement_Section/Segment_Section";
 import MapFloor from "../../components/MapFloor/MapFloor";
-
+import { Button } from "react-bootstrap";
+import CustomButton from "../../components/CustomizedButton/CustomizedButton";
+import SelectableButtons from "../../components/SelectableButtons/SelectableButtons";
+import LocationPicker from "../../components/LocationPicker/LocationPicker";
+import { Form } from "react-bootstrap";
+import FloorMap from "../../components/FloorMap/FloorMap";
 import "./style.css";
 
 export const MacbookAir = () => {
@@ -25,6 +30,23 @@ export const MacbookAir = () => {
   const [selectedModes, setSelectedModes] = useState([]); // 存储选中的 `horizontal` & `vertical`
   const [computeIntersections, setComputeIntersections] = useState(false);
   const [walls, setWalls] = useState([]); // 将墙体数据提升至主页面
+  const [locations, setLocations] = useState([]);
+  const [mapData, setMapData] = useState(null); // 添加状态用于存储 JSON 数据
+
+  // 加载 JSON 数据
+  useEffect(() => {
+    fetch("/space_scan.json")
+      .then((response) => {
+        if (!response.ok)
+          throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+      })
+      .then((data) => {
+        console.log("加载的 JSON 数据:", data);
+        setMapData(data);
+      })
+      .catch((error) => console.error("加载 JSON 失败:", error));
+  }, []);
 
   // 控制 `horizontal` & `vertical` 的复选
   const handleModeChange = (mode) => {
@@ -37,6 +59,10 @@ export const MacbookAir = () => {
   const handleComputeIntersections = () => {
     setComputeIntersections(false); // 触发交点计算
     setTimeout(() => setComputeIntersections(true), 100); // 触发更新
+  };
+
+  const handleLocationSelect = (newLocation) => {
+    setLocations((prev) => [...prev, newLocation]);
   };
 
   return (
@@ -94,251 +120,229 @@ export const MacbookAir = () => {
               setWalls={setWalls}
             />
             <div className="map-container">
-              <MapFloor />
+              {mapData ? (
+                <FloorMap mapData={mapData} />
+              ) : (
+                <div>Loading map...</div>
+              )}
+              {/* <MapFloor /> */}
             </div>
           </div>
 
           <div className="div-wrapper">
-            <div className="overlap-4">
-              <div className="rectangle-3" />
+            <div className="rectangle-3" />
 
-              <div className="annotator">
-                <div className="group-6">
-                  <div className="overlap-group-2">
-                    <div className="text-wrapper-5">Annotator</div>
+            <div className="annotator">
+              <div className="text-wrapper-5">Annotator</div>
+
+              <div className="annotator_content">
+                <div className="viewSelection">
+                  <p className="h1">
+                    <span>FloorPlan - </span>
+
+                    <span className="text-wrapper-6">myhouse.JSON</span>
+                  </p>
+
+                  <div className="viewRadio">
+                    <RadioGroup
+                      property1="select"
+                      text="Grid View"
+                      vector="https://c.animaapp.com/UTvzRI5U/img/vector-21-5.svg"
+                    />
+                    <RadioGroup
+                      img="/img/vector-21-7.svg"
+                      property1="unselect"
+                      text="Canvas"
+                      vectorClassName="radio-group-instance"
+                    />
                   </div>
+
+                  <img
+                    className="vector-3"
+                    alt="Vector"
+                    src="https://c.animaapp.com/UTvzRI5U/img/vector-21-6.svg"
+                  />
                 </div>
 
-                <div className="frame-3">
-                  <div className="frame-4">
-                    <div className="frame-wrapper">
-                      <div className="frame-5">
-                        <div className="frame-6">
-                          <RadioGroup
-                            property1="select"
-                            text="Grid View"
-                            vector="https://c.animaapp.com/UTvzRI5U/img/vector-21-5.svg"
-                          />
-                          <RadioGroup
-                            img="/img/vector-21-7.svg"
-                            property1="unselect"
-                            text="Canvas"
-                            vectorClassName="radio-group-instance"
-                          />
-                        </div>
-                      </div>
-                    </div>
+                <div className="trimSelection">
+                  <div className="h1">Trim</div>
 
-                    <img
-                      className="vector-3"
-                      alt="Vector"
-                      src="https://c.animaapp.com/UTvzRI5U/img/vector-21-6.svg"
-                    />
-
-                    <p className="floorplan-myhouse">
-                      <span className="span">FloorPlan - </span>
-
-                      <span className="text-wrapper-6">myhouse.JSON</span>
-                    </p>
-                  </div>
-
-                  <div className="frame-7">
-                    <div className="frame-8">
-                      <div className="text-wrapper-7">Trim</div>
-
-                      <TabsAndContent
-                        override={
-                          <TabItem
-                            className="tab-item-2"
-                            property1="select-auto"
-                          />
-                        }
-                        property1="auto"
-                        tabs={
-                          <TabItem
-                            className="tab-item-2"
-                            property1="unselect-manual"
-                          />
-                        }
+                  <TabsAndContent
+                    override={
+                      <TabItem className="tab-item-2" property1="select-auto" />
+                    }
+                    property1="auto"
+                    tabs={
+                      <TabItem
+                        className="tab-item-2"
+                        property1="unselect-manual"
                       />
-                      <div className="frame-9">
-                        <RadioGroupWrapper
-                          className="radio-group-2"
-                          radioGroupImg="/img/vector-21-5.svg"
-                          radioGroupVector="/img/vector-21-4.svg"
-                          radioGroupVectorClassName="radio-group-3"
-                          radioGroupVectorClassNameOverride="radio-group-4"
-                        />
-                        <TrimButton
-                          className="trim-button-instance"
-                          property1="default"
-                          text="Trim"
-                        />
-                      </div>
-                    </div>
-
-                    <img
-                      className="vector-3"
-                      alt="Vector"
-                      src="https://c.animaapp.com/UTvzRI5U/img/vector-21-6.svg"
+                    }
+                  />
+                  <div className="trimMethod">
+                    <RadioGroupWrapper
+                      className="radio-group-2"
+                      radioGroupImg="/img/vector-21-5.svg"
+                      radioGroupVector="/img/vector-21-4.svg"
+                      radioGroupVectorClassName="radio-group-3"
+                      radioGroupVectorClassNameOverride="radio-group-4"
+                    />
+                    <TrimButton
+                      className="trim-button-instance"
+                      property1="default"
+                      text="Trim"
                     />
                   </div>
 
-                  <div className="frame-4">
-                    <Segment_Section
-                      setDrawingMode={setDrawingMode}
-                      drawingMode={drawingMode}
-                      selectedModes={selectedModes}
-                      handleModeChange={handleModeChange}
-                      handleComputeIntersections={handleComputeIntersections}
-                      walls={walls}
-                    />
-                    <img
-                      className="vector-3"
-                      alt="Vector"
-                      src="https://c.animaapp.com/UTvzRI5U/img/vector-21-6.svg"
-                    />
-                  </div>
+                  <img
+                    className="vector-3"
+                    alt="Vector"
+                    src="https://c.animaapp.com/UTvzRI5U/img/vector-21-6.svg"
+                  />
+                </div>
 
-                  <div className="group-11">
-                    <p className="entrance-location">
-                      Entrance 1 - Location &gt;
-                    </p>
+                <Segment_Section
+                  setDrawingMode={setDrawingMode}
+                  drawingMode={drawingMode}
+                  selectedModes={selectedModes}
+                  handleModeChange={handleModeChange}
+                  handleComputeIntersections={handleComputeIntersections}
+                  walls={walls}
+                />
 
-                    <p className="p">Entrance 3 - Location &gt;</p>
-
-                    <p className="entrance-location-2">
-                      Entrance 2 - Location &gt;
-                    </p>
-
-                    <div className="text-wrapper-9">Name</div>
-
+                <div className="labelSelection">
+                  <div className="h1">Label</div>
+                  <Dropdown className="dropdown" vector="" />
+                  <div className="entrance">
                     <div className="text-wrapper-10">Entrance</div>
-
-                    <div className="text-wrapper-11">Facilities</div>
-
-                    <div className="text-wrapper-12">ID</div>
-
-                    <div className="text-wrapper-13">Label</div>
-
-                    <Dropdown className="dropdown" vector="" />
-                    {/* <Dropdown
-                    className="dropDown-instance"
-                    options={[
-                      "2D Layout - Room",
-                      "3D Layout - Floor",
-                      "Custom Layout",
-                    ]}
-                    vector={dropdownIcon}
-                  /> */}
-
-                    {/* <<img
-                    className="frame-15"
-                    alt="Frame"
-                    src="https://c.animaapp.com/UTvzRI5U/img/frame-6.png"
-                  />> */}
-
-                    <div className="lucide-locate-wrapper">
-                      <img
-                        className="lucide-locate"
-                        alt="Lucide locate"
-                        src="/img/image.svg"
-                      />
-                    </div>
-
-                    <div className="group-12">
-                      <div className="text-input">
-                        <div className="text-wrapper-14">| Description</div>
+                    <div className="entrance_selector">
+                      <div className="entrance-input">
+                        <div className="input-style">| Entrance 1</div>
                       </div>
 
-                      <img
-                        className="frame-16"
-                        alt="Frame"
-                        src="https://c.animaapp.com/UTvzRI5U/img/frame-21-1.png"
-                      />
+                      <div className="entrance_list">
+                        <p className="entrance-location">
+                          Entrance 1 - Location &gt;
+                        </p>
+
+                        <p className="entrance-location">
+                          Entrance 3 - Location &gt;
+                        </p>
+
+                        <p className="entrance-location">
+                          Entrance 2 - Location &gt;
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="info">
+                    <div className="info-input">
+                      <div className="text-wrapper-10">Name</div>
+                      <div className="info-enter">
+                        <div className="input-style">| Name</div>
+                      </div>
                     </div>
 
-                    <div className="frame-17">
-                      <div className="text-wrapper-15">| Name</div>
+                    <div className="info-input">
+                      <div className="text-wrapper-10">ID</div>
+                      <div className="info-enter">
+                        <div className="input-style">113</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="facilities">
+                    <div className="text-wrapper-10">Facilities</div>
+
+                    <div className="facilitySelection">
+                      <Form.Group
+                        className="mb-1"
+                        controlId="exampleForm.ControlTextarea1"
+                        style={{ width: "60%" }}
+                      >
+                        <Form.Control as="textarea" rows={1} />
+                      </Form.Group>
+                      {/* <div className="text-input">
+                          <div className="text-wrapper-14">| Description</div>
+                        </div> */}
+
+                      <CustomButton
+                        style={{
+                          width: "30%",
+                          height: "29px",
+                          fontSize: "12px",
+                        }}
+                      >
+                        Select
+                      </CustomButton>
                     </div>
 
-                    <div className="frame-18">
-                      <div className="text-wrapper-15">| Entrance 1</div>
+                    <div className="facilities-list">
+                      <SelectableButtons
+                        labels={[
+                          "Exhibition",
+                          "Elevator",
+                          "Service",
+                          "Restrooms",
+                          "Landmarks",
+                          "Obstacles",
+                        ]}
+                        // buttonStyle={{  }}
+                      ></SelectableButtons>
                     </div>
 
-                    <div className="frame-19">
-                      <div className="text-wrapper-16">113</div>
-                    </div>
+                    {/* <div className="container mt-4">
+                        <LocationPicker
+                          onLocationSelect={handleLocationSelect}
+                        />
+
+          
+                        <div className="mt-3">
+                          <h4>已选择的位置:</h4>
+                          <ul>
+                            {locations.map((loc, index) => (
+                              <li key={index}>
+                                {loc.name || "Unnamed"} - X: {loc.x}, Y: {loc.y}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div> */}
+                  </div>
+
+                  <div className="description">
+                    <div className="text-wrapper-10">Description</div>
+
+                    <Form.Group
+                      className="mb-3"
+                      controlId="exampleForm.ControlTextarea1"
+                    >
+                      <Form.Control as="textarea" rows={5} />
+                    </Form.Group>
+                    {/* <div className="text-input">
+                          <div className="text-wrapper-14">| Description</div>
+                        </div> */}
+                  </div>
+
+                  <div className="voiceAnnotation">
+                    <div className="text-wrapper-10">Voice Annotation</div>
+
+                    <Form.Group
+                      className="mb-1"
+                      controlId="exampleForm.ControlTextarea1"
+                      style={{ width: "100%" }}
+                    >
+                      <Form.Control as="textarea" rows={1} />
+                    </Form.Group>
+
+                    <CustomButton onClick={() => alert("submit")}>
+                      Submit
+                    </CustomButton>
 
                     <img
-                      className="group-13"
-                      alt="Group"
-                      src="https://c.animaapp.com/UTvzRI5U/img/group-1000005133@2x.png"
+                      className="frame-27"
+                      alt="Frame"
+                      src="https://c.animaapp.com/UTvzRI5U/img/frame-21-1.png"
                     />
-
-                    <img
-                      className="lucide-locate-2"
-                      alt="Lucide locate"
-                      src="/img/lucide-locate.svg"
-                    />
-
-                    <div className="frame-20">
-                      <div className="text-wrapper-17">Select</div>
-                    </div>
-
-                    <div className="frame-21">
-                      <div className="text-wrapper-18">Exhibition</div>
-                    </div>
-
-                    <div className="frame-22">
-                      <div className="text-wrapper-18">Elevator</div>
-                    </div>
-
-                    <div className="frame-23">
-                      <div className="text-wrapper-18">Service</div>
-                    </div>
-
-                    <div className="frame-24">
-                      <div className="text-wrapper-18">Restrooms</div>
-                    </div>
-
-                    <div className="frame-25">
-                      <div className="text-wrapper-18">Landmarks</div>
-                    </div>
-
-                    <div className="frame-26">
-                      <div className="text-wrapper-19">Obstacles</div>
-                    </div>
-
-                    <div className="group-wrapper">
-                      <div className="group-14">
-                        <div className="group-15">
-                          <div className="group-16">
-                            <div className="text-wrapper-14">
-                              Voice Annotation
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="group-17">
-                      <div className="group-18">
-                        <div className="group-19">
-                          <div className="group-20">
-                            <img
-                              className="frame-27"
-                              alt="Frame"
-                              src="https://c.animaapp.com/UTvzRI5U/img/frame-21-1.png"
-                            />
-
-                            <div className="frame-28">
-                              <div className="text-wrapper-20">Submit</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
