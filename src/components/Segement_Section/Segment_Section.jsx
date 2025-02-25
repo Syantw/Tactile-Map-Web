@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Line } from "../Segment/Line";
 import { Select } from "../Segment/Select";
 import { RadioGroup } from "../RadioGroupWrapper/RadioGroup";
@@ -12,46 +12,52 @@ const Segment_Section = ({
   handleModeChange,
   handleComputeIntersections,
   walls,
+  showGrid, // 新增网格状态
 }) => {
+  const [activeTab, setActiveTab] = useState(null);
+
+  const handleTabClick = (mode) => {
+    const newMode = activeTab === mode ? null : mode;
+    setActiveTab(newMode);
+    setDrawingMode(newMode);
+  };
+
   return (
     <div className="segmentSelection">
       <div className="h1">Segment</div>
 
-      {/* Segment Controls */}
       <div className="segment-controls">
         <Line
-          setDrawingMode={setDrawingMode}
-          drawingMode={drawingMode}
+          isSelected={activeTab === "line"}
+          onClick={() => handleTabClick("line")}
           className="line-instance"
           mingcutePenLine="https://c.animaapp.com/UTvzRI5U/img/mingcute-pen-line-1.svg"
         />
         <Select
-          setDrawingMode={setDrawingMode}
-          drawingMode={drawingMode}
+          isSelected={activeTab === "select"}
+          onClick={() => handleTabClick("select")}
           selectIcon="https://c.animaapp.com/UTvzRI5U/img/ant-design-select-outlined-1.svg"
           className="select-instance"
         />
       </div>
 
-      {/* Radio Buttons for Line Selection */}
-      <div className="frame-11">
-        <RadioGroup
-          text="Horizontal"
-          vector="https://c.animaapp.com/UTvzRI5U/img/vector-21-5.svg"
-          selectedOptions={selectedModes}
-          onChange={handleModeChange}
-          isControlled={drawingMode === "line"}
-        />
-        <RadioGroup
-          text="Vertical"
-          vector="https://c.animaapp.com/UTvzRI5U/img/vector-21-5.svg"
-          selectedOptions={selectedModes}
-          onChange={handleModeChange}
-          isControlled={drawingMode === "line"}
-        />
-      </div>
+      {activeTab === "line" && (
+        <div className="frame-11">
+          <RadioGroup
+            text="Horizontal"
+            vector="https://c.animaapp.com/UTvzRI5U/img/vector-21-5.svg"
+            selectedOptions={selectedModes}
+            onChange={handleModeChange}
+          />
+          <RadioGroup
+            text="Vertical"
+            vector="https://c.animaapp.com/UTvzRI5U/img/vector-21-5.svg"
+            selectedOptions={selectedModes}
+            onChange={handleModeChange}
+          />
+        </div>
+      )}
 
-      {/* Compute and Generate Buttons */}
       <ComputerButton
         className="computer-button-instance"
         onClick={handleComputeIntersections}

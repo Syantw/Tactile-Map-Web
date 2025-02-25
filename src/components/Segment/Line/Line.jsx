@@ -1,22 +1,11 @@
-import React, { useState } from "react";
+import React from "react";
 import "./style.css";
 
-export const Line = ({
-  className,
-  mingcutePenLine,
-  drawingMode,
-  setDrawingMode,
-}) => {
-  const isSelected = drawingMode === "line"; // 监听全局 `drawingMode`
-
-  const handleClick = () => {
-    setDrawingMode(isSelected ? null : "line"); // 再次点击取消选中
-  };
-
+export const Line = ({ className, mingcutePenLine, isSelected, onClick }) => {
   return (
     <div
       className={`line ${className} ${isSelected ? "default" : "unselect"}`}
-      onClick={handleClick}
+      onClick={onClick}
     >
       <img
         className="mingcute-pen-line"

@@ -1,0 +1,36 @@
+.info-input {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.text-wrapper-10 {
+  color: #505050;
+  font-family: "Poppins", Helvetica;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.info-enter {
+  align-items: center;
+  background-color: #f4f4f4;
+  border: 1px solid #b8b8b8 !important;
+  border-radius: 3px !important;
+  height: 29px;
+  padding: 10px !important;
+  width: 126px;
+  font-size: 12px;
+  font-family: "Poppins", Helvetica;
+}
+
+.info-enter:focus {
+  background-color: #fff;
+  border-color: #3274f6 !important;
+  box-shadow: 0 0 0 0.2rem rgba(50, 116, 246, 0.25);
+}
+
+.info-enter:disabled {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+}

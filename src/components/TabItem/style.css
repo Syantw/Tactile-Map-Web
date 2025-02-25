@@ -7,6 +7,7 @@
   padding: 6px 18px;
   position: relative;
   width: 159px;
+  cursor: pointer; /* 增加点击感 */
 }
 
 .tab-item .selected-2 {
@@ -21,18 +22,28 @@
   width: fit-content;
 }
 
-.tab-item.unselect-manual {
-  background-color: #f1f5f9;
-}
-
 .tab-item.select-auto {
   background-color: #3274f6;
 }
 
-.tab-item.unselect-manual .selected-2 {
-  color: #334155;
+.tab-item.unselect-auto {
+  background-color: #f1f5f9;
 }
 
-.tab-item.select-auto .selected-2 {
+.tab-item.select-manual {
+  background-color: #3274f6;
+}
+
+.tab-item.unselect-manual {
+  background-color: #f1f5f9;
+}
+
+.tab-item.select-auto .selected-2,
+.tab-item.select-manual .selected-2 {
   color: #ffffff;
+}
+
+.tab-item.unselect-auto .selected-2,
+.tab-item.unselect-manual .selected-2 {
+  color: #334155;
 }

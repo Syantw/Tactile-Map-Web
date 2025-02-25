@@ -1,15 +1,19 @@
-/*
-We're constantly improving the code you see. 
-Please share your feedback here: https://form.asana.com/?k=uvp-HPgd3_hyoXRBw1IcNg&d=1152665201300829
-*/
-
 import React from "react";
-import "./style.css";
+import { Button } from "react-bootstrap";
 
-export const TrimButton = ({ property1, className, text = "Go" }) => {
+export const TrimButton = ({
+  property1,
+  className,
+  text = "Trim",
+  onClick,
+}) => {
   return (
-    <div className={`trim-button ${className}`}>
-      <div className="go">{text}</div>
-    </div>
+    <Button
+      variant="primary"
+      className={`trim-button ${className}`}
+      onClick={onClick}
+    >
+      {text}
+    </Button>
   );
 };

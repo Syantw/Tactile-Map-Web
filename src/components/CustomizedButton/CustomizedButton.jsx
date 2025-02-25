@@ -18,7 +18,7 @@ const CustomButton = ({
     gap: "7px",
     height: "37px",
     padding: "10px 20px",
-    width: "301px",
+    width: "100%",
     color: "white",
     fontWeight: "bold",
     border: "none",

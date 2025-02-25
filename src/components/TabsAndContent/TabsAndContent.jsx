@@ -1,29 +1,27 @@
-/*
-We're constantly improving the code you see. 
-Please share your feedback here: https://form.asana.com/?k=uvp-HPgd3_hyoXRBw1IcNg&d=1152665201300829
-*/
-
 import React from "react";
 import { TabItem } from "../TabItem";
-import { Tabs } from "../Tabs";
 import "./style.css";
 
 export const TabsAndContent = ({
-  property1,
-  tabs = (
-    <TabItem
-      className="design-component-instance-node"
-      property1="unselect-manual"
-    />
-  ),
-  override = (
-    <TabItem
-      className="design-component-instance-node"
-      property1="select-auto"
-    />
-  ),
+  property1, // "auto" 或 "manual"
+  onTabChange,
 }) => {
   return (
-    <Tabs className="tabs-and-content" override={override} override1={tabs} />
+    <div className="tabs-and-content">
+      <div className="tabButtons" onClick={() => onTabChange && onTabChange(0)}>
+        <TabItem
+          className="design-component-instance-node"
+          property1={property1 === "auto" ? "select-auto" : "unselect-auto"}
+        />
+      </div>
+      <div className="tabButtons" onClick={() => onTabChange && onTabChange(1)}>
+        <TabItem
+          className="design-component-instance-node"
+          property1={
+            property1 === "manual" ? "select-manual" : "unselect-manual"
+          }
+        />
+      </div>
+    </div>
   );
 };

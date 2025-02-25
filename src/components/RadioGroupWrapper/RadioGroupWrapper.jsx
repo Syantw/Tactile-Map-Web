@@ -1,37 +1,38 @@
-/*
-We're constantly improving the code you see. 
-Please share your feedback here: https://form.asana.com/?k=uvp-HPgd3_hyoXRBw1IcNg&d=1152665201300829
-*/
-
 import React from "react";
-import { RadioGroup } from "./RadioGroup";
+import { RadioGroupTrim } from "./RadioGroupTrim/RadioGroupTrim";
 import "./style.css";
 
 export const RadioGroupWrapper = ({
   className,
-  radioGroupVector = "/img/vector-21-2.svg",
+  radioGroupVector = "https://c.animaapp.com/UTvzRI5U/img/vector-21-3.svg",
+  radioGroupImg = "/img/vector-21-5.svg",
   radioGroupVectorClassName,
-  radioGroupImg = "/img/vector-21-3.svg",
   radioGroupVectorClassNameOverride,
+  onToolSelect,
+  selectedTool,
 }) => {
   return (
     <div className={`radio-group-wrapper ${className}`}>
-      <RadioGroup
-        property1="select"
+      <RadioGroupTrim
         text="Pencil"
+        isSelected={selectedTool === "pencil"}
+        onClick={() => onToolSelect("pencil")}
         vector="https://c.animaapp.com/UTvzRI5U/img/vector-21-3.svg"
+        img="/img/vector-21-5.svg"
       />
-      <RadioGroup
-        img={radioGroupVector}
-        property1="unselect"
+      <RadioGroupTrim
         text="Pen"
-        vectorClassName={radioGroupVectorClassName}
+        isSelected={selectedTool === "pen"}
+        onClick={() => onToolSelect("pen")}
+        vector="https://c.animaapp.com/UTvzRI5U/img/vector-21-3.svg"
+        img="/img/vector-21-5.svg"
       />
-      <RadioGroup
-        img={radioGroupImg}
-        property1="unselect"
+      <RadioGroupTrim
         text="Scissor"
-        vectorClassName={radioGroupVectorClassNameOverride}
+        isSelected={selectedTool === "scissor"}
+        onClick={() => onToolSelect("scissor")}
+        vector="https://c.animaapp.com/UTvzRI5U/img/vector-21-3.svg"
+        img="/img/vector-21-5.svg"
       />
     </div>
   );

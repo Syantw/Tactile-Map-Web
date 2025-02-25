@@ -6,6 +6,7 @@ const DrawingCanvas = ({
   computeIntersections,
   setComputeIntersections,
   setWalls,
+  showGrid,
 }) => {
   if (!drawingMode) return null;
   const canvasRef = useRef(null);
@@ -36,6 +37,14 @@ const DrawingCanvas = ({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [drawingMode, selectedShapeIndex, selectedModes, computeIntersections]);
 
+  const snapToGrid = (x, y) => {
+    if (!showGrid) return { x, y };
+    const gridSize = 50;
+    const snappedX = Math.round(x / gridSize) * gridSize;
+    const snappedY = Math.round(y / gridSize) * gridSize;
+    return { x: snappedX, y: snappedY };
+  };
+
   const redrawCanvas = (newIntersections = intersections) => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -43,7 +52,7 @@ const DrawingCanvas = ({
 
     drawingsRef.current.forEach((draw, index) => {
       ctx.beginPath();
-      ctx.strokeStyle = index === selectedShapeIndex ? "blue" : "red"; // 选中高亮
+      ctx.strokeStyle = index === selectedShapeIndex ? "blue" : "red";
       ctx.lineWidth = 2;
 
       if (draw.type === "line") {
@@ -58,15 +67,15 @@ const DrawingCanvas = ({
         );
       } else if (draw.type === "horizontal") {
         ctx.moveTo(0, draw.start.y);
-        ctx.lineTo(canvas.width, draw.start.y); // 横线跨满画布
+        ctx.lineTo(canvas.width, draw.start.y);
       } else if (draw.type === "vertical") {
         ctx.moveTo(draw.start.x, 0);
-        ctx.lineTo(draw.start.x, canvas.height); // 竖线跨满画布
+        ctx.lineTo(draw.start.x, canvas.height);
       } else if (draw.type === "cross") {
         ctx.moveTo(0, draw.start.y);
-        ctx.lineTo(canvas.width, draw.start.y); // 水平线
+        ctx.lineTo(canvas.width, draw.start.y);
         ctx.moveTo(draw.start.x, 0);
-        ctx.lineTo(draw.start.x, canvas.height); // 竖直线
+        ctx.lineTo(draw.start.x, canvas.height);
       }
 
       ctx.stroke();
@@ -86,9 +95,9 @@ const DrawingCanvas = ({
     const rect = canvas.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
+    const snapped = snapToGrid(mouseX, mouseY);
 
     if (drawingMode === "select") {
-      // 找到被点击的图案
       const foundIndex = drawingsRef.current.findIndex(
         (shape) =>
           mouseX >= Math.min(shape.start.x, shape.end.x) &&
@@ -100,13 +109,8 @@ const DrawingCanvas = ({
       if (foundIndex !== -1) {
         setSelectedShapeIndex(foundIndex);
         setIsDragging(true);
-
-        // 计算鼠标点击时相对于图案的偏移量
         const shape = drawingsRef.current[foundIndex];
-        setOffset({
-          x: mouseX - shape.start.x,
-          y: mouseY - shape.start.y,
-        });
+        setOffset({ x: mouseX - shape.start.x, y: mouseY - shape.start.y });
       } else {
         setSelectedShapeIndex(null);
       }
@@ -115,7 +119,7 @@ const DrawingCanvas = ({
       return;
     } else {
       setIsDrawing(true);
-      setStartPos({ x: mouseX, y: mouseY });
+      setStartPos(snapped);
     }
   };
 
@@ -125,14 +129,14 @@ const DrawingCanvas = ({
       const rect = canvas.getBoundingClientRect();
       const currentX = e.clientX - rect.left;
       const currentY = e.clientY - rect.top;
+      const snapped = snapToGrid(currentX, currentY);
 
-      // 计算新的起点和终点
       const selectedShape = drawingsRef.current[selectedShapeIndex];
       const width = selectedShape.end.x - selectedShape.start.x;
       const height = selectedShape.end.y - selectedShape.start.y;
 
-      selectedShape.start.x = currentX - offset.x;
-      selectedShape.start.y = currentY - offset.y;
+      selectedShape.start.x = snapped.x - offset.x;
+      selectedShape.start.y = snapped.y - offset.y;
       selectedShape.end.x = selectedShape.start.x + width;
       selectedShape.end.y = selectedShape.start.y + height;
 
@@ -147,8 +151,9 @@ const DrawingCanvas = ({
     const rect = canvas.getBoundingClientRect();
     const currentX = e.clientX - rect.left;
     const currentY = e.clientY - rect.top;
+    const snapped = snapToGrid(currentX, currentY);
 
-    redrawCanvas(); // 先绘制已有图案，再绘制当前图案
+    redrawCanvas();
 
     ctx.beginPath();
     ctx.strokeStyle = "blue";
@@ -156,20 +161,20 @@ const DrawingCanvas = ({
 
     if (drawingMode === "line") {
       ctx.moveTo(startPos.x, startPos.y);
-      ctx.lineTo(currentX, currentY);
+      ctx.lineTo(snapped.x, snapped.y);
     } else if (drawingMode === "rectangle") {
       ctx.rect(
         startPos.x,
         startPos.y,
-        currentX - startPos.x,
-        currentY - startPos.y
+        snapped.x - startPos.x,
+        snapped.y - startPos.y
       );
     } else if (drawingMode === "horizontal-line") {
       ctx.moveTo(startPos.x, startPos.y);
-      ctx.lineTo(currentX, startPos.y);
+      ctx.lineTo(snapped.x, startPos.y);
     } else if (drawingMode === "vertical-line") {
       ctx.moveTo(startPos.x, startPos.y);
-      ctx.lineTo(startPos.x, currentY);
+      ctx.lineTo(startPos.x, snapped.y);
     }
 
     ctx.stroke();
@@ -181,19 +186,18 @@ const DrawingCanvas = ({
       return;
     }
 
-    if (drawingMode === "select") {
-      return; // 选择模式下不创建新图形，但允许鼠标释放
-    }
+    if (drawingMode === "select") return;
 
     setIsDrawing(false);
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     const endX = e.clientX - rect.left;
     const endY = e.clientY - rect.top;
+    const snappedEnd = snapToGrid(endX, endY);
 
-    let type = "line"; // 默认普通线条
-    let finalEndX = endX;
-    let finalEndY = endY;
+    let type = "line";
+    let finalEndX = snappedEnd.x;
+    let finalEndY = snappedEnd.y;
 
     if (drawingMode === "line") {
       if (
@@ -509,12 +513,7 @@ const DrawingCanvas = ({
       ref={canvasRef}
       width={1300}
       height={1300}
-      style={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        zIndex: 1,
-      }}
+      style={{ position: "absolute", top: 0, left: 0, zIndex: 1 }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}

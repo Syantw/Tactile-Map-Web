@@ -1,19 +1,11 @@
-.radio-group-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  justify-content: center;
-  position: relative;
-}
-
-/* 重用 RadioGroup 的样式，确保一致性 */
-.radio-group {
+.radio-group-trim {
   height: 18px;
   position: relative;
   width: 112px;
+  cursor: pointer;
 }
 
-.radio-group .vertical-line {
+.radio-group-trim .vertical-line {
   color: #505050;
   font-family: "Poppins", Helvetica;
   font-size: 12px;
@@ -25,7 +17,7 @@
   top: -1px;
 }
 
-.radio-group.selected .vector-wrapper {
+.radio-group-trim .vector-wrapper {
   background-color: #3274f6;
   border: 1px solid #afafaf;
   border-radius: 5px;
@@ -36,7 +28,7 @@
   width: 17px;
 }
 
-.radio-group .vector {
+.radio-group-trim .vector {
   height: 6px;
   left: 4px;
   position: absolute;
@@ -44,7 +36,7 @@
   width: 8px;
 }
 
-.radio-group .rectangle {
+.radio-group-trim .rectangle {
   border: 1px solid #afafaf;
   border-radius: 5px;
   height: 17px;
@@ -52,12 +44,4 @@
   position: absolute;
   top: 0;
   width: 17px;
-}
-
-.radio-group .img {
-  height: 5px;
-  left: 5px; /* 修正位置，避免负值偏移 */
-  position: absolute;
-  top: 5px;
-  width: 7px;
 }

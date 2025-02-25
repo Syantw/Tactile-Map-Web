@@ -1,0 +1,33 @@
+.trimSelection {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+}
+
+.trimSelection .h1 {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.trim-button-instance {
+  width: 80%;
+  align-items: center;
+  font-family: "Poppins", Helvetica;
+  height: fit-content;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  background-color: #82a7f1; /* 默认颜色 */
+  font-family: "Poppins";
+  font-weight: 600;
+  border: 0;
+}
+
+.trim-button-instance {
+  background-color: #5b8ce6; /* 悬停反馈 */
+}
+
+.trim-button-instance:active {
+  background-color: #3f70d1; /* 点击反馈 */
+}

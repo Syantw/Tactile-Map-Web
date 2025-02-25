@@ -8,12 +8,11 @@
   justify-content: center;
   padding: 10px 20px;
   position: relative;
-  width: 150px;
+  width: 40%;
 }
 
-.select .ant-design-select {
+.select .select-icon {
   height: 16px;
-  margin-left: -4.5px;
   position: relative;
   width: 16px;
 }
@@ -25,7 +24,6 @@
   font-weight: 600;
   letter-spacing: 0;
   line-height: normal;
-  margin-right: -4.5px;
   margin-top: -0.5px;
   position: relative;
   width: fit-content;

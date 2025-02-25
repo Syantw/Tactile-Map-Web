@@ -1,0 +1,37 @@
+.viewSelection {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 14px;
+  position: relative;
+  height: fit-content;
+  width: 90%;
+}
+
+.viewRadio {
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 69px;
+  margin-right: -28px;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  padding: 9px 32px;
+}
+
+.text-wrapper-6 {
+  color: #245ce5;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* h1 样式可能需要根据全局定义调整 */
+.h1 {
+  display: flex;
+  gap: 10px;
+  font-family: "Poppins", Helvetica;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
