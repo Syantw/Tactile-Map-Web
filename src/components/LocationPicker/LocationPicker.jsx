@@ -4,9 +4,8 @@ import PropTypes from "prop-types";
 import "./style.css";
 
 export const LocationPicker = ({
-  onPickLocation,
   addLocation,
-  setIsPicking, // 用于通知父组件 isPicking 状态
+  setIsPicking,
   locations = [],
   className = "",
 }) => {
@@ -22,21 +21,6 @@ export const LocationPicker = ({
       setIsPickingLocal(false);
       setIsPicking(false);
       console.log("Exit picking mode");
-    }
-  };
-
-  const handleLocationPicked = (x, y) => {
-    if (isPicking) {
-      const newLocation = {
-        x,
-        y,
-        name: locationName || `Point ${locations.length + 1}`,
-        category: "",
-      };
-      addLocation(newLocation);
-      setIsPickingLocal(false);
-      setIsPicking(false);
-      console.log("Location picked and added:", newLocation);
     }
   };
 
@@ -80,7 +64,6 @@ export const LocationPicker = ({
 };
 
 LocationPicker.propTypes = {
-  onPickLocation: PropTypes.func.isRequired,
   addLocation: PropTypes.func.isRequired,
   setIsPicking: PropTypes.func.isRequired,
   locations: PropTypes.arrayOf(

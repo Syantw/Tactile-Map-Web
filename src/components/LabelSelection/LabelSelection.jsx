@@ -16,27 +16,38 @@ export const LabelSelection = ({
   setEntrance,
   locations,
   setLocations,
-  onPickLocation,
+  tempLocation,
+  setTempLocation,
   onFileUpload,
   setIsPicking,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState([]);
   const [description, setDescription] = useState("");
+  const [locationName, setLocationName] = useState(""); // 新增：存储 locationName
 
   const handleAddLocation = (location) => {
     const updatedLocation = {
       ...location,
-      category: selectedCategory[0] || "Unknown",
-      description,
+      name: locationName || `Point ${locations.length + 1}`, // 使用 locationName
     };
-    setLocations((prev) => [...prev, updatedLocation]);
-    console.log(
-      "Added location with category and description:",
-      updatedLocation
-    );
+    setTempLocation(updatedLocation);
+    console.log("Temp location set in LabelSelection:", updatedLocation);
   };
 
   const handleSelect = () => {
+    if (tempLocation) {
+      const updatedLocation = {
+        ...tempLocation,
+        category: selectedCategory[0] || "Unknown",
+        description,
+      };
+      setLocations((prev) => {
+        const newLocations = [...prev, updatedLocation];
+        console.log("Updated locations in LabelSelection:", newLocations);
+        return newLocations;
+      });
+      setTempLocation(null);
+    }
     console.log(
       "Selected - Locations:",
       locations,
@@ -102,10 +113,11 @@ export const LabelSelection = ({
         <div className="text-wrapper-10">Facilities</div>
         <div className="facilitySelection">
           <LocationPicker
-            onPickLocation={onPickLocation}
             addLocation={handleAddLocation}
             setIsPicking={setIsPicking}
             locations={locations}
+            locationName={locationName}
+            setLocationName={setLocationName}
           />
         </div>
         <div className="facilities-list">

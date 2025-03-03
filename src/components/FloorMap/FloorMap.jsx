@@ -1,5 +1,5 @@
 import React, { Fragment, useState, useEffect, useRef } from "react";
-import { Stage, Layer, Line, Circle, Text } from "react-konva";
+import { Stage, Layer, Line, Rect, Text } from "react-konva";
 import hull from "hull.js";
 import simplify from "simplify-js";
 
@@ -8,12 +8,12 @@ const FloorMap = ({
   trimMode,
   setMapData,
   showGrid = false,
-  showWall = true, // 默认显示墙体
-  onPickLocation,
+  showWall = true,
   locations = [],
   highlightedLocation,
   setHighlightedLocation,
   isPicking,
+  handleAddLocation,
 }) => {
   const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 600, height: 800 });
@@ -161,42 +161,61 @@ const FloorMap = ({
   };
 
   const handleClick = (e) => {
-    if (!isPicking) {
-      console.log("Not in picking mode, click ignored.");
-      return;
-    }
-
     const stage = e.target.getStage();
     const pos = stage.getPointerPosition();
     const snappedPos = snapToGrid(pos, showGrid);
 
-    if (isPicking && onPickLocation && !trimMode) {
-      onPickLocation(snappedPos.x, snappedPos.y);
-      console.log("Picking location:", snappedPos);
+    // 调整点击坐标以考虑 Stage 的拖动和缩放
+    const adjustedX = (snappedPos.x - stagePosition.x) / zoom;
+    const adjustedY = (snappedPos.y - stagePosition.y) / zoom;
+
+    console.log("Adjusted click position:", { adjustedX, adjustedY });
+    console.log("Current locations:", locations);
+
+    // 标记阶段：isPicking 为 true 时，点击任意位置添加点位
+    if (isPicking && !trimMode) {
+      handleAddLocation({ x: adjustedX, y: adjustedY });
+      console.log("Picking location:", { x: adjustedX, y: adjustedY });
       return;
     }
 
-    const clickedLocation = locations.find(
-      (loc) =>
-        Math.abs(loc.x - snappedPos.x) < 20 &&
-        Math.abs(loc.y - snappedPos.y) < 20
-    );
+    // 查看阶段：isPicking 为 false 时，检测是否点击已有点位
+    if (!isPicking) {
+      const clickedLocation = locations.find((loc) => {
+        const locX = loc.x;
+        const locY = loc.y;
+        const distance = Math.sqrt(
+          Math.pow(locX - adjustedX, 2) + Math.pow(locY - adjustedY, 2)
+        );
+        console.log(
+          "Checking location:",
+          loc,
+          "Distance:",
+          distance,
+          "Threshold:",
+          20 / zoom
+        );
+        return distance < 20 / zoom;
+      });
 
-    if (clickedLocation) {
-      setActiveInfoBox(
-        clickedLocation === activeInfoBox ? null : clickedLocation
-      );
-      setHighlightedLocation(clickedLocation);
-      console.log(
-        "Clicked location:",
-        clickedLocation,
-        "Active info box:",
-        clickedLocation === activeInfoBox ? null : clickedLocation
-      );
-    } else {
-      setActiveInfoBox(null);
-      setHighlightedLocation(null);
-      console.log("Clicked outside, clearing info box");
+      if (clickedLocation) {
+        setActiveInfoBox(
+          clickedLocation === activeInfoBox ? null : clickedLocation
+        );
+        setHighlightedLocation(
+          clickedLocation === highlightedLocation ? null : clickedLocation
+        );
+        console.log(
+          "Clicked location:",
+          clickedLocation,
+          "Active info box:",
+          clickedLocation === activeInfoBox ? null : clickedLocation
+        );
+      } else {
+        setActiveInfoBox(null);
+        setHighlightedLocation(null);
+        console.log("Clicked outside, clearing info box");
+      }
     }
   };
 
@@ -330,12 +349,12 @@ const FloorMap = ({
         <Stage
           width={canvasWidth}
           height={canvasHeight}
-          draggable={false} // 固定网格不可拖动
+          draggable={false}
           style={{
             position: "absolute",
             top: 0,
             left: 0,
-            zIndex: -1, // 网格在最底层
+            zIndex: -1,
           }}
         >
           <Layer>{renderGrid()}</Layer>
@@ -382,7 +401,7 @@ const FloorMap = ({
                 shadowBlur={layer.type === "wall" ? 5 : 0}
                 shadowOffset={{ x: 2, y: 2 }}
                 shadowOpacity={0.3}
-                visible={layer.type === "wall" ? showWall : true} // 修正：showWall 为 true 时显示墙体
+                visible={layer.type === "wall" ? showWall : true}
               />
             );
           })}
@@ -396,35 +415,50 @@ const FloorMap = ({
           )}
           {locations.map((loc, index) => (
             <Fragment key={index}>
-              <Circle
-                x={loc.x}
-                y={loc.y}
-                radius={highlightedLocation === loc ? 10 : 5}
-                fill={highlightedLocation === loc ? "red" : "blue"}
-                stroke="black"
-                strokeWidth={1}
+              <Rect
+                x={loc.x - (highlightedLocation === loc ? 10 : 6.5)}
+                y={loc.y - (highlightedLocation === loc ? 10 : 6.5)}
+                width={highlightedLocation === loc ? 20 : 13}
+                height={highlightedLocation === loc ? 20 : 13}
+                fill="#007AFF"
+                stroke="white"
+                strokeWidth={3}
+                cornerRadius={6.5}
+                shadowColor="black"
+                shadowBlur={5}
+                shadowOffset={{ x: 0, y: 2 }}
+                shadowOpacity={0.3}
                 onClick={(e) => {
-                  if (!isPicking) return;
+                  if (isPicking) return;
                   e.cancelBubble = true;
                   setActiveInfoBox(loc === activeInfoBox ? null : loc);
-                  setHighlightedLocation(loc);
-                  console.log("Circle clicked:", loc);
+                  setHighlightedLocation(
+                    loc === highlightedLocation ? null : loc
+                  );
+                  console.log("Point clicked:", loc);
                 }}
               />
               {activeInfoBox === loc && (
                 <Text
-                  x={loc.x + 15}
-                  y={loc.y - 10}
-                  text={`${loc.name} (${loc.category})\n${
-                    loc.description || ""
-                  }`}
+                  x={loc.x + 20}
+                  y={loc.y - 15}
+                  text={`${loc.name || "Unknown"}\n${
+                    loc.category || "No Category"
+                  }\n${loc.description || "No Description"}`}
                   fontSize={12}
                   fontFamily="Poppins"
                   fill="#000"
-                  padding={5}
+                  padding={15}
                   backgroundColor="#fff"
-                  stroke="#b8b8b8"
-                  strokeWidth={1}
+                  cornerRadius={20}
+                  shadowColor="#007AFF"
+                  shadowBlur={10}
+                  shadowOffset={{ x: 0, y: 5 }}
+                  shadowOpacity={0.15}
+                  width={114}
+                  height={66}
+                  align="left"
+                  verticalAlign="middle"
                 />
               )}
             </Fragment>

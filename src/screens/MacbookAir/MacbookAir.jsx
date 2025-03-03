@@ -19,12 +19,13 @@ export const MacbookAir = () => {
   const [computeIntersections, setComputeIntersections] = useState(false);
   const [walls, setWalls] = useState([]);
   const [locations, setLocations] = useState([]);
+  const [tempLocation, setTempLocation] = useState(null);
   const [mapData, setMapData] = useState(null);
   const [trimMode, setTrimMode] = useState(null);
   const [name, setName] = useState("");
   const [id, setId] = useState("");
   const [entrance, setEntrance] = useState("");
-  const [viewOptions, setViewOptions] = useState([]); // 默认不选中任何选项
+  const [viewOptions, setViewOptions] = useState([]);
   const [highlightedLocation, setHighlightedLocation] = useState(null);
   const [isPicking, setIsPicking] = useState(false);
 
@@ -54,8 +55,9 @@ export const MacbookAir = () => {
     setTimeout(() => setComputeIntersections(true), 100);
   };
 
-  const handlePickLocation = (x, y) => {
-    console.log("Picking location in MacbookAir:", { x, y });
+  const handleAddLocation = (location) => {
+    setTempLocation(location);
+    console.log("Temp location set in MacbookAir:", location);
   };
 
   const handleTrim = (mode, tool) => {
@@ -126,12 +128,12 @@ export const MacbookAir = () => {
                   trimMode={trimMode}
                   setMapData={setMapData}
                   showGrid={viewOptions.includes("Grid View")}
-                  showWall={viewOptions.includes("Wall")} // 修正：直接使用 viewOptions
-                  onPickLocation={handlePickLocation}
+                  showWall={viewOptions.includes("Wall")}
                   locations={locations}
                   highlightedLocation={highlightedLocation}
                   setHighlightedLocation={setHighlightedLocation}
                   isPicking={isPicking}
+                  handleAddLocation={handleAddLocation}
                 />
                 <DrawingCanvas
                   drawingMode={drawingMode}
@@ -186,7 +188,8 @@ export const MacbookAir = () => {
                 setEntrance={setEntrance}
                 locations={locations}
                 setLocations={setLocations}
-                onPickLocation={handlePickLocation}
+                tempLocation={tempLocation}
+                setTempLocation={setTempLocation}
                 onFileUpload={handleFileUpload}
                 setIsPicking={setIsPicking}
               />
