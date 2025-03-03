@@ -4,7 +4,7 @@
   flex-wrap: wrap;
   align-items: flex-start; /* 让子元素顶部对齐 */
   gap: 10px;
-  width: 100%;
+  width: 80%;
 }
 
 /* 墙体网格容器 */
@@ -16,7 +16,6 @@
   ); /* 自动换行，每行最多 4 个 */
   gap: 10px;
   width: 100%;
-  max-width: 367px;
   margin-top: 10px;
   align-content: flex-start; /* 让 grid 项目正确填充 */
   min-height: fit-content; /* 防止高度塌陷 */

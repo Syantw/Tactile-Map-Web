@@ -1,9 +1,12 @@
-import React, { useState } from "react";
+import React from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-const SelectableButtons = ({ labels = [], buttonStyle = {} }) => {
-  const [selected, setSelected] = useState([]);
-
+const SelectableButtons = ({
+  labels = [],
+  selected = [],
+  setSelected,
+  buttonStyle = {},
+}) => {
   const toggleSelection = (label) => {
     setSelected((prevSelected) =>
       prevSelected.includes(label)

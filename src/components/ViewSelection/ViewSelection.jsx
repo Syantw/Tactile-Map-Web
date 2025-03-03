@@ -10,7 +10,7 @@ export const ViewSelection = ({
   className = "",
 }) => {
   const [fileName, setFileName] = useState(initialFileName);
-  const [viewOptions, setViewOptions] = useState(["Grid View"]); // 默认显示网格
+  const [viewOptions, setViewOptions] = useState([]); // 默认不选中任何选项
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
@@ -29,7 +29,7 @@ export const ViewSelection = ({
       : [...viewOptions, option];
     setViewOptions(newOptions);
     if (onViewChange) {
-      onViewChange(newOptions); // 传递完整选项数组
+      onViewChange(newOptions);
     }
     console.log("View options updated in ViewSelection:", newOptions);
   };

@@ -32,23 +32,15 @@
   z-index: 1;
 }
 
-/* .macbook-air .overlap-2 {
-  background-image: url(https://c.animaapp.com/UTvzRI5U/img/image-435.png);
-  background-size: 100% 100%;
-  height: 832px;
-  position: relative;
-  top: 14px;
-  width: 941px;
-} */
-
 /* New map container replacing overlap-2 */
 .map-container {
-  width: 70vw; /* 与 FloorMap 一致 */
+  width: 70vw;
   height: 100vh;
-  padding: 0; /* 移除内边距 */
-  margin: 0; /* 移除外边距 */
-  border: none; /* 移除边框 */
-  overflow: hidden; /* 防止溢出 */
+  padding: 0;
+  margin: 0;
+  border: none;
+  position: relative;
+  overflow: hidden;
 }
 
 .macbook-air.ui-overlay {
@@ -264,8 +256,10 @@
   width: 100%;
   margin: 0;
   padding: 0;
-  gap: 10px; /* 子项间距 */
-  overflow-y: auto; /* 如果内容溢出，允许滚动 */
+  gap: 20px;
+  overflow-y: auto;
+  padding-bottom: 30px;
+  overflow-x: hidden;
 }
 
 .macbook-air .viewSelection {
@@ -273,22 +267,10 @@
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
-  gap: 14px;
+  gap: 30px;
   position: relative;
   height: fit-content;
   width: 90%;
-}
-
-.macbook-air .viewRadio {
-  align-items: center;
-  flex: 0 0 auto;
-  gap: 69px;
-  margin-right: -28px;
-  position: relative;
-  display: flex;
-  flex-direction: row;
-  padding: 9px 32px;
-  position: relative;
 }
 
 .macbook-air .radio-group-instance {
@@ -385,29 +367,15 @@
   width: 90%;
 }
 
-.macbook-air .radio-group-2 {
-  flex: 0 0 auto !important;
-}
-
-.macbook-air .radio-group-3 {
-  left: -6395px !important;
-  top: 1198px !important;
-}
-
-.macbook-air .radio-group-4 {
-  left: -6395px !important;
-  top: 1172px !important;
-}
-
 .macbook-air .frame-11 {
   align-items: center;
   flex: 0 0 auto;
-  gap: 69px;
-  margin-right: -28px;
+  justify-content: space-around;
   position: relative;
   display: flex;
   flex-direction: row;
-  padding: 9px 32px;
+  width: 100%;
+  margin-right: -28px;
 }
 
 .macbook-air .frame-12 {
@@ -418,43 +386,6 @@
   left: 28px;
   position: relative;
   width: 311px;
-}
-
-.macbook-air .radio-group-5 {
-  left: -6562px !important;
-  top: 976px !important;
-}
-
-.macbook-air .group-7 {
-  height: 15px;
-  left: 34px;
-  position: absolute;
-  top: 12px;
-  width: 78px;
-}
-
-.macbook-air .group-8 {
-  height: 15px;
-  left: 34px;
-  position: absolute;
-  top: 37px;
-  width: 82px;
-}
-
-.macbook-air .group-9 {
-  height: 15px;
-  left: 126px;
-  position: absolute;
-  top: 12px;
-  width: 81px;
-}
-
-.macbook-air .group-10 {
-  height: 15px;
-  left: 218px;
-  position: absolute;
-  top: 12px;
-  width: 81px;
 }
 
 .macbook-air .segment-controls {
@@ -503,7 +434,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 25px;
+  gap: 30px;
 }
 
 .macbook-air .text-wrapper-13 {

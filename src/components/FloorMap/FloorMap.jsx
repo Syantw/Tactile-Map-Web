@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { Stage, Layer, Line } from "react-konva";
+import React, { Fragment, useState, useEffect, useRef } from "react";
+import { Stage, Layer, Line, Circle, Text } from "react-konva";
 import hull from "hull.js";
 import simplify from "simplify-js";
 
@@ -8,13 +8,20 @@ const FloorMap = ({
   trimMode,
   setMapData,
   showGrid = false,
-  showWall = true,
+  showWall = true, // 默认显示墙体
+  onPickLocation,
+  locations = [],
+  highlightedLocation,
+  setHighlightedLocation,
+  isPicking,
 }) => {
   const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 600, height: 800 });
   const [zoom, setZoom] = useState(1);
   const [drawingPoints, setDrawingPoints] = useState([]);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [activeInfoBox, setActiveInfoBox] = useState(null);
+  const [stagePosition, setStagePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -36,12 +43,18 @@ const FloorMap = ({
 
   useEffect(() => {
     console.log(
-      "FloorMap props updated - showGrid:",
+      "FloorMap props updated - locations:",
+      locations,
+      "activeInfoBox:",
+      activeInfoBox,
+      "isPicking:",
+      isPicking,
+      "showGrid:",
       showGrid,
       "showWall:",
       showWall
     );
-  }, [showGrid, showWall]);
+  }, [locations, activeInfoBox, isPicking, showGrid, showWall]);
 
   const handleWheel = (e) => {
     e.evt.preventDefault();
@@ -52,6 +65,11 @@ const FloorMap = ({
         3
       )
     );
+  };
+
+  const handleDragEnd = (e) => {
+    const stage = e.target;
+    setStagePosition({ x: stage.x(), y: stage.y() });
   };
 
   const handleMouseDown = (e) => {
@@ -142,51 +160,43 @@ const FloorMap = ({
     }
   };
 
-  const handleScissor = (e) => {
-    if (trimMode !== "scissor" || drawingPoints.length < 4) return;
-    try {
-      const stage = e.target.getStage();
-      const pos = stage.getPointerPosition();
-      const { scale, minX, minY, dataWidth, dataHeight } = getGlobalBounds(
-        mapData.layers
+  const handleClick = (e) => {
+    if (!isPicking) {
+      console.log("Not in picking mode, click ignored.");
+      return;
+    }
+
+    const stage = e.target.getStage();
+    const pos = stage.getPointerPosition();
+    const snappedPos = snapToGrid(pos, showGrid);
+
+    if (isPicking && onPickLocation && !trimMode) {
+      onPickLocation(snappedPos.x, snappedPos.y);
+      console.log("Picking location:", snappedPos);
+      return;
+    }
+
+    const clickedLocation = locations.find(
+      (loc) =>
+        Math.abs(loc.x - snappedPos.x) < 20 &&
+        Math.abs(loc.y - snappedPos.y) < 20
+    );
+
+    if (clickedLocation) {
+      setActiveInfoBox(
+        clickedLocation === activeInfoBox ? null : clickedLocation
       );
-      const clickedX =
-        (pos.x - (canvasWidth - dataWidth) / 2) / (pixelSize * scale) + minX;
-      const clickedY =
-        (pos.y - (canvasHeight - dataHeight) / 2) / (pixelSize * scale) + minY;
-
-      const newData = { ...mapData };
-      const floorLayer = newData.layers.find((l) => l.type === "floor");
-      if (!floorLayer) return;
-
-      const simplifiedLine = drawingPoints;
-      const clickSide =
-        (simplifiedLine[2] - simplifiedLine[0]) *
-          (clickedY - simplifiedLine[1]) -
-        (simplifiedLine[3] - simplifiedLine[1]) *
-          (clickedX - simplifiedLine[0]);
-
-      const newPixels = floorLayer.pixels.filter((_, i) => {
-        if (i % 2 === 0) {
-          const x = floorLayer.pixels[i];
-          const y = floorLayer.pixels[i + 1];
-          const side =
-            (simplifiedLine[2] - simplifiedLine[0]) * (y - simplifiedLine[1]) -
-            (simplifiedLine[3] - simplifiedLine[1]) * (x - simplifiedLine[0]);
-          return side * clickSide > 0;
-        }
-        return true;
-      });
-
-      if (newPixels.length > 0) {
-        floorLayer.pixels = newPixels;
-        setMapData(newData);
-        console.log("Scissor applied, floor trimmed to:", newPixels.length);
-      }
-      setDrawingPoints([]);
-    } catch (error) {
-      console.error("Error in handleScissor:", error);
-      setDrawingPoints([]);
+      setHighlightedLocation(clickedLocation);
+      console.log(
+        "Clicked location:",
+        clickedLocation,
+        "Active info box:",
+        clickedLocation === activeInfoBox ? null : clickedLocation
+      );
+    } else {
+      setActiveInfoBox(null);
+      setHighlightedLocation(null);
+      console.log("Clicked outside, clearing info box");
     }
   };
 
@@ -296,15 +306,6 @@ const FloorMap = ({
     return lines;
   };
 
-  console.log(
-    "Rendering FloorMap - mapData:",
-    mapData,
-    "showGrid:",
-    showGrid,
-    "showWall:",
-    showWall
-  );
-
   if (!mapData || !mapData.layers) {
     console.warn("No valid mapData provided");
     return <div>No map data available</div>;
@@ -316,18 +317,46 @@ const FloorMap = ({
   return (
     <div
       ref={containerRef}
-      style={{ width: "70vw", height: "100vh", border: "none" }}
+      style={{
+        width: "70vw",
+        height: "100vh",
+        border: "none",
+        position: "relative",
+        zIndex: isPicking ? 2 : 0,
+      }}
     >
+      {/* 固定网格层 */}
+      {showGrid && (
+        <Stage
+          width={canvasWidth}
+          height={canvasHeight}
+          draggable={false} // 固定网格不可拖动
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            zIndex: -1, // 网格在最底层
+          }}
+        >
+          <Layer>{renderGrid()}</Layer>
+        </Stage>
+      )}
+
+      {/* 主地图层 */}
       <Stage
         width={canvasWidth}
         height={canvasHeight}
         draggable={!trimMode || trimMode === "auto"}
+        onDragEnd={handleDragEnd}
         onWheel={handleWheel}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onClick={handleScissor}
-        style={{ border: "none" }}
+        onClick={handleClick}
+        style={{
+          border: "none",
+          cursor: isPicking && !trimMode ? "crosshair" : "default",
+        }}
       >
         <Layer>
           {mapData.layers.map((layer, index) => {
@@ -353,11 +382,10 @@ const FloorMap = ({
                 shadowBlur={layer.type === "wall" ? 5 : 0}
                 shadowOffset={{ x: 2, y: 2 }}
                 shadowOpacity={0.3}
-                visible={layer.type === "wall" ? !showWall : true} // 反转逻辑
+                visible={layer.type === "wall" ? showWall : true} // 修正：showWall 为 true 时显示墙体
               />
             );
           })}
-          {showGrid && renderGrid()}
           {drawingPoints.length > 0 && trimMode !== "auto" && (
             <Line
               points={drawingPoints}
@@ -366,6 +394,41 @@ const FloorMap = ({
               dash={trimMode === "pencil" ? [5, 5] : null}
             />
           )}
+          {locations.map((loc, index) => (
+            <Fragment key={index}>
+              <Circle
+                x={loc.x}
+                y={loc.y}
+                radius={highlightedLocation === loc ? 10 : 5}
+                fill={highlightedLocation === loc ? "red" : "blue"}
+                stroke="black"
+                strokeWidth={1}
+                onClick={(e) => {
+                  if (!isPicking) return;
+                  e.cancelBubble = true;
+                  setActiveInfoBox(loc === activeInfoBox ? null : loc);
+                  setHighlightedLocation(loc);
+                  console.log("Circle clicked:", loc);
+                }}
+              />
+              {activeInfoBox === loc && (
+                <Text
+                  x={loc.x + 15}
+                  y={loc.y - 10}
+                  text={`${loc.name} (${loc.category})\n${
+                    loc.description || ""
+                  }`}
+                  fontSize={12}
+                  fontFamily="Poppins"
+                  fill="#000"
+                  padding={5}
+                  backgroundColor="#fff"
+                  stroke="#b8b8b8"
+                  strokeWidth={1}
+                />
+              )}
+            </Fragment>
+          ))}
         </Layer>
       </Stage>
     </div>

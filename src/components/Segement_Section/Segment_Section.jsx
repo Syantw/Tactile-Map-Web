@@ -64,11 +64,6 @@ const Segment_Section = ({
         Type="Compute"
       />
       <WallList walls={walls} />
-      <ComputerButton
-        className="generate-button-instance"
-        onClick={handleComputeIntersections}
-        Type="Generate"
-      />
 
       <img
         className="vector-3"

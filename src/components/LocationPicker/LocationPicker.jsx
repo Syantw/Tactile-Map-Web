@@ -1,82 +1,97 @@
 import React, { useState } from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
+import { Form } from "react-bootstrap";
+import PropTypes from "prop-types";
+import "./style.css";
 
-const LocationPicker = ({ onLocationSelect }) => {
-  const [isPicking, setIsPicking] = useState(false); // 是否正在选择位置
-  const [locationName, setLocationName] = useState(""); // 位置名称
-  const [selectedLocation, setSelectedLocation] = useState(null); // 选择的坐标
+export const LocationPicker = ({
+  onPickLocation,
+  addLocation,
+  setIsPicking, // 用于通知父组件 isPicking 状态
+  locations = [],
+  className = "",
+}) => {
+  const [isPicking, setIsPickingLocal] = useState(false);
+  const [locationName, setLocationName] = useState("");
 
-  // 切换定位模式
   const handlePickLocation = () => {
-    setIsPicking(true);
+    if (!isPicking) {
+      setIsPickingLocal(true);
+      setIsPicking(true);
+      console.log("Entering picking mode");
+    } else {
+      setIsPickingLocal(false);
+      setIsPicking(false);
+      console.log("Exit picking mode");
+    }
   };
 
-  // 处理地图点击，存储坐标
-  const handleMapClick = (event) => {
+  const handleLocationPicked = (x, y) => {
     if (isPicking) {
-      const x = event.clientX;
-      const y = event.clientY;
-      setSelectedLocation({ x, y });
+      const newLocation = {
+        x,
+        y,
+        name: locationName || `Point ${locations.length + 1}`,
+        category: "",
+      };
+      addLocation(newLocation);
+      setIsPickingLocal(false);
       setIsPicking(false);
-      onLocationSelect({ x, y, name: locationName }); // 传递数据到父组件
+      console.log("Location picked and added:", newLocation);
     }
   };
 
   return (
-    <div>
-      {/* 定位输入框 */}
-      <div className="input-group mb-3">
+    <div className={`location-picker ${className}`}>
+      <div className="input-group mb-2">
         <span
           className="input-group-text"
           onClick={handlePickLocation}
-          style={{ cursor: "pointer" }}
+          style={{
+            cursor: "pointer",
+            backgroundColor: isPicking ? "#3274f6" : "#f4f4f4",
+          }}
         >
-          📍
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
+              fill={isPicking ? "#fff" : "#000"}
+            />
+          </svg>
         </span>
-        <input
+        <Form.Control
           type="text"
-          className="form-control"
           placeholder="Enter location name..."
           value={locationName}
-          onChange={(e) => setLocationName(e.target.value)}
+          onChange={(e) => {
+            setLocationName(e.target.value);
+            console.log("Location name updated:", e.target.value);
+          }}
+          style={{ height: "35px", fontSize: "12px" }}
         />
-      </div>
-
-      {/* 监听地图区域的点击事件 */}
-      <div
-        id="mapFloor"
-        onClick={handleMapClick}
-        style={{
-          width: "100%",
-          height: "400px",
-          backgroundColor: "#f0f0f0",
-          position: "relative",
-          cursor: isPicking ? "crosshair" : "default",
-        }}
-      >
-        {/* 渲染选择的定位标 */}
-        {selectedLocation && (
-          <div
-            style={{
-              position: "absolute",
-              top: selectedLocation.y - 10,
-              left: selectedLocation.x - 10,
-              width: "20px",
-              height: "20px",
-              backgroundColor: "red",
-              borderRadius: "50%",
-              textAlign: "center",
-              lineHeight: "20px",
-              color: "white",
-              fontWeight: "bold",
-            }}
-          >
-            📍
-          </div>
-        )}
       </div>
     </div>
   );
+};
+
+LocationPicker.propTypes = {
+  onPickLocation: PropTypes.func.isRequired,
+  addLocation: PropTypes.func.isRequired,
+  setIsPicking: PropTypes.func.isRequired,
+  locations: PropTypes.arrayOf(
+    PropTypes.shape({
+      x: PropTypes.number,
+      y: PropTypes.number,
+      name: PropTypes.string,
+      category: PropTypes.string,
+    })
+  ),
+  className: PropTypes.string,
 };
 
 export default LocationPicker;

@@ -7,6 +7,7 @@ const DrawingCanvas = ({
   setComputeIntersections,
   setWalls,
   showGrid,
+  isPicking,
 }) => {
   if (!drawingMode) return null;
   const canvasRef = useRef(null);
@@ -47,6 +48,7 @@ const DrawingCanvas = ({
 
   const redrawCanvas = (newIntersections = intersections) => {
     const canvas = canvasRef.current;
+    if (!canvas) return; // 确保 canvas 存在
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -81,7 +83,6 @@ const DrawingCanvas = ({
       ctx.stroke();
     });
 
-    // 画交点
     newIntersections.forEach(({ x, y }) => {
       ctx.beginPath();
       ctx.fillStyle = "yellow";
@@ -91,7 +92,19 @@ const DrawingCanvas = ({
   };
 
   const handleMouseDown = (e) => {
+    if (isPicking) {
+      console.log("DrawingCanvas: In picking mode, drawing disabled.");
+      return;
+    }
+
+    console.log("DrawingCanvas: Mouse down event triggered.", { drawingMode });
+
     const canvas = canvasRef.current;
+    if (!canvas) {
+      console.error("DrawingCanvas: Canvas ref is not available.");
+      return;
+    }
+
     const rect = canvas.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
@@ -111,8 +124,10 @@ const DrawingCanvas = ({
         setIsDragging(true);
         const shape = drawingsRef.current[foundIndex];
         setOffset({ x: mouseX - shape.start.x, y: mouseY - shape.start.y });
+        console.log("DrawingCanvas: Selected shape at index:", foundIndex);
       } else {
         setSelectedShapeIndex(null);
+        console.log("DrawingCanvas: No shape selected.");
       }
 
       redrawCanvas();
@@ -120,10 +135,16 @@ const DrawingCanvas = ({
     } else {
       setIsDrawing(true);
       setStartPos(snapped);
+      console.log("DrawingCanvas: Started drawing at:", snapped);
     }
   };
 
   const handleMouseMove = (e) => {
+    if (isPicking) {
+      console.log("DrawingCanvas: In picking mode, drawing disabled.");
+      return;
+    }
+
     if (isDragging && selectedShapeIndex !== null) {
       const canvas = canvasRef.current;
       const rect = canvas.getBoundingClientRect();
@@ -141,6 +162,7 @@ const DrawingCanvas = ({
       selectedShape.end.y = selectedShape.start.y + height;
 
       redrawCanvas();
+      console.log("DrawingCanvas: Dragging shape to:", snapped);
       return;
     }
 
@@ -178,11 +200,20 @@ const DrawingCanvas = ({
     }
 
     ctx.stroke();
+    console.log("DrawingCanvas: Drawing in progress to:", snapped);
   };
 
   const handleMouseUp = (e) => {
+    if (isPicking) {
+      console.log("DrawingCanvas: In picking mode, drawing disabled.");
+      return;
+    }
+
+    console.log("DrawingCanvas: Mouse up event triggered.");
+
     if (isDragging) {
       setIsDragging(false);
+      console.log("DrawingCanvas: Stopped dragging.");
       return;
     }
 
@@ -190,6 +221,11 @@ const DrawingCanvas = ({
 
     setIsDrawing(false);
     const canvas = canvasRef.current;
+    if (!canvas) {
+      console.error("DrawingCanvas: Canvas ref is not available.");
+      return;
+    }
+
     const rect = canvas.getBoundingClientRect();
     const endX = e.clientX - rect.left;
     const endY = e.clientY - rect.top;
@@ -226,17 +262,25 @@ const DrawingCanvas = ({
     });
 
     redrawCanvas();
+    console.log("DrawingCanvas: Finished drawing:", {
+      type,
+      start: startPos,
+      end: { x: finalEndX, y: finalEndY },
+    });
   };
 
   const deleteSelectedShape = () => {
     if (selectedShapeIndex !== null) {
-      drawingsRef.current.splice(selectedShapeIndex, 1); // 删除选中的图案
+      drawingsRef.current.splice(selectedShapeIndex, 1);
       setSelectedShapeIndex(null);
       redrawCanvas();
+      console.log(
+        "DrawingCanvas: Deleted selected shape at index:",
+        selectedShapeIndex
+      );
     }
   };
 
-  //   Draw Intersection
   const computeAndDrawIntersections = () => {
     console.log("🔬 Analyzing intersections...");
     console.log("📌 Total drawn shapes:", drawingsRef.current.length);
@@ -264,16 +308,8 @@ const DrawingCanvas = ({
       }
     }
 
-    // // 计算墙壁
-    // if (newIntersections.length > 1) {
-    //   const computedWalls = computeWalls(newIntersections);
-    //   setWalls(computedWalls);
-    //   console.log("🧱 Walls computed:", computedWalls);
-    // }
-    // 生成墙体数据
     newWalls = generateWallsFromIntersections(newIntersections);
-    setWalls(newWalls); // 更新主页面的墙体数据
-
+    setWalls(newWalls);
     setIntersections(newIntersections);
     redrawCanvas(newIntersections);
   };
@@ -281,7 +317,6 @@ const DrawingCanvas = ({
   const findIntersection = (shape1, shape2) => {
     console.log("🔍 Checking intersection between:", shape1, shape2);
 
-    // **计算线段之间的交点（包括自由线段）**
     if (shape1.type === "line" && shape2.type === "line") {
       return getLineIntersection(
         shape1.start,
@@ -291,7 +326,6 @@ const DrawingCanvas = ({
       );
     }
 
-    // **确保水平线和竖直线都能计算交点**
     if (shape1.type === "horizontal" || shape2.type === "horizontal") {
       return getHorizontalIntersection(shape1, shape2);
     }
@@ -299,12 +333,10 @@ const DrawingCanvas = ({
       return getVerticalIntersection(shape1, shape2);
     }
 
-    // **计算矩形交点**
     if (shape1.type === "rectangle" || shape2.type === "rectangle") {
       return getRectangleIntersection(shape1, shape2);
     }
 
-    // **计算十字交点**
     if (shape1.type === "cross") {
       return getCrossIntersection(shape1, shape2);
     }
@@ -328,13 +360,14 @@ const DrawingCanvas = ({
         shape.end
       );
     } else if (shape.type === "vertical") {
-      intersection = { x: shape.start.x, y: y }; // ✅ 修正交点计算
+      intersection = { x: shape.start.x, y: y };
     } else if (shape.type === "rectangle") {
       intersection = getRectangleIntersection(shape, horizontal);
     }
 
     return intersection;
   };
+
   const getVerticalIntersection = (vertical, shape) => {
     const x = vertical.start.x;
     let intersection = null;
@@ -347,31 +380,32 @@ const DrawingCanvas = ({
         shape.end
       );
     } else if (shape.type === "horizontal") {
-      intersection = { x: x, y: shape.start.y }; // ✅ 修正交点计算
+      intersection = { x: x, y: shape.start.y };
     } else if (shape.type === "rectangle") {
       intersection = getRectangleIntersection(shape, vertical);
     }
 
     return intersection;
   };
+
   const getRectangleIntersection = (rect, shape) => {
     const rectEdges = [
       {
         start: { x: rect.start.x, y: rect.start.y },
         end: { x: rect.end.x, y: rect.start.y },
-      }, // 顶边
+      },
       {
         start: { x: rect.end.x, y: rect.start.y },
         end: { x: rect.end.x, y: rect.end.y },
-      }, // 右边
+      },
       {
         start: { x: rect.end.x, y: rect.end.y },
         end: { x: rect.start.x, y: rect.end.y },
-      }, // 底边
+      },
       {
         start: { x: rect.start.x, y: rect.end.y },
         end: { x: rect.start.x, y: rect.start.y },
-      }, // 左边
+      },
     ];
 
     let intersections = [];
@@ -421,7 +455,7 @@ const DrawingCanvas = ({
 
     const determinant = a1 * b2 - a2 * b1;
     if (determinant === 0) {
-      return null; // 平行
+      return null;
     }
 
     const x = (b2 * c1 - b1 * c2) / determinant;
@@ -441,6 +475,7 @@ const DrawingCanvas = ({
     }
     return null;
   };
+
   const getCrossIntersection = (cross, shape) => {
     console.log(
       `🔎 Checking cross intersection: Cross(${cross.start.x}, ${cross.start.y})`
@@ -450,11 +485,11 @@ const DrawingCanvas = ({
       {
         start: { x: 0, y: cross.start.y },
         end: { x: canvasRef.current.width, y: cross.start.y },
-      }, // 水平线
+      },
       {
         start: { x: cross.start.x, y: 0 },
         end: { x: cross.start.x, y: canvasRef.current.height },
-      }, // 竖直线
+      },
     ];
 
     let intersections = [];
@@ -511,9 +546,15 @@ const DrawingCanvas = ({
   return (
     <canvas
       ref={canvasRef}
-      width={1300}
-      height={1300}
-      style={{ position: "absolute", top: 0, left: 0, zIndex: 1 }}
+      width={canvasRef.current?.parentElement?.offsetWidth ?? "70%"}
+      height={canvasRef.current?.parentElement?.offsetHeight ?? "100%"}
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        zIndex: isPicking ? 0 : 1,
+        pointerEvents: isPicking ? "none" : "auto", // 禁用点击事件
+      }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}

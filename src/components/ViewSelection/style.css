@@ -12,12 +12,12 @@
 .viewRadio {
   align-items: center;
   flex: 0 0 auto;
-  gap: 69px;
   margin-right: -28px;
   position: relative;
   display: flex;
   flex-direction: row;
-  padding: 9px 32px;
+  justify-content: space-around;
+  width: 100%;
 }
 
 .text-wrapper-6 {

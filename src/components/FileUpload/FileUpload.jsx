@@ -51,9 +51,9 @@ export const FileUpload = ({
     fileInputWrapper: {
       display: "flex",
       alignItems: "center",
-      backgroundColor: "#f4f4f4",
+      backgroundColor: "#ffff",
       border: "1px solid #b8b8b8",
-      borderRadius: "3px",
+      borderRadius: "5px",
       height: "37px",
       cursor: "pointer",
       width: "100%",
@@ -78,7 +78,9 @@ export const FileUpload = ({
       padding: "5px",
       width: "34px",
       height: "34px",
+      borderRadius: "5px",
       borderRight: "1px solid #b8b8b8",
+      backgroundColor: "#f4f4f4",
     },
     svgIcon: {
       width: "18px",
@@ -89,7 +91,7 @@ export const FileUpload = ({
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: "rgb(50, 116, 246)",
-      borderRadius: "10px",
+      borderRadius: "5px",
       gap: "7px",
       height: "37px",
       padding: "10px 20px",
@@ -129,11 +131,11 @@ export const FileUpload = ({
             >
               <path
                 d="M896 576c-17.7 0-32 14.3-32 32v137.8c0 22.9-9 44.5-25.3 60.8s-38 25.4-60.9 25.4H246.2c-22.9 0-44.5-9-60.8-25.3-16.4-16.4-25.4-38-25.4-60.9V608c0-17.7-14.3-32-32-32s-32 14.3-32 32v137.8C96 828.6 163.4 896 246.2 896h531.7c82.8 0 150.2-67.4 150.2-150.2V608c-0.1-17.7-14.4-32-32.1-32z"
-                fill="#1875F0"
+                fill="#00000"
               />
               <path
                 d="M422.6 294.6l57.4-57.4v402.7c0 17.6 14.4 32 32 32s32-14.4 32-32V237.2l57.4 57.4c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3l-112-112c-12.5-12.5-32.8-12.5-45.3 0l-112 112c-6.2 6.2-9.4 14.4-9.4 22.6 0 8.2 3.1 16.4 9.4 22.6 12.5 12.6 32.7 12.6 45.2 0.1z"
-                fill="#1875F0"
+                fill="#000000"
               />
             </svg>
           </div>
