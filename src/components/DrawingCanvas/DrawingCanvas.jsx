@@ -1,4 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
+import { Stage, Layer, Line, Rect, Circle, Shape } from "react-konva";
+import simplify from "simplify-js";
 
 const DrawingCanvas = ({
   drawingMode,
@@ -8,16 +10,42 @@ const DrawingCanvas = ({
   setWalls,
   showGrid,
   isPicking,
+  selectedWalls,
+  setSelectedWalls,
 }) => {
   if (!drawingMode) return null;
-  const canvasRef = useRef(null);
+
+  const stageRef = useRef(null);
+  const containerRef = useRef(null);
+  const [dimensions, setDimensions] = useState({ width: 600, height: 800 });
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
   const drawingsRef = useRef([]); // 存储所有绘制的图案
-  const [selectedShapeIndex, setSelectedShapeIndex] = useState(null); // 选中的图案索引
+  const [tempDrawing, setTempDrawing] = useState(null); // 存储临时绘制的图案
+  const [selectedShapeIndex, setSelectedShapeIndex] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [offset, setOffset] = useState({ x: 0, y: 0 }); // 记录点击时的偏移量
-  const [intersections, setIntersections] = useState([]); // 存储交点
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [intersections, setIntersections] = useState([]);
+  const [rooms, setRooms] = useState([]);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [error, setError] = useState(null); // 错误边界状态
+
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        const { offsetWidth, offsetHeight } = containerRef.current;
+        setDimensions({ width: offsetWidth, height: offsetHeight });
+        console.log("DrawingCanvas dimensions updated:", {
+          width: offsetWidth,
+          height: offsetHeight,
+        });
+      }
+    };
+
+    updateDimensions();
+    window.addEventListener("resize", updateDimensions);
+    return () => window.removeEventListener("resize", updateDimensions);
+  }, []);
 
   useEffect(() => {
     if (computeIntersections) {
@@ -25,8 +53,6 @@ const DrawingCanvas = ({
       computeAndDrawIntersections();
       setComputeIntersections(false);
     }
-
-    redrawCanvas();
 
     const handleKeyDown = (e) => {
       if (e.key === "Delete" || e.key === "Backspace") {
@@ -46,49 +72,57 @@ const DrawingCanvas = ({
     return { x: snappedX, y: snappedY };
   };
 
-  const redrawCanvas = (newIntersections = intersections) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return; // 确保 canvas 存在
-    const ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const snapToNearbyRectangle = (currentShape) => {
+    const threshold = 10;
+    const { start, end } = currentShape;
+    let newStart = { ...start };
+    let newEnd = { ...end };
 
-    drawingsRef.current.forEach((draw, index) => {
-      ctx.beginPath();
-      ctx.strokeStyle = index === selectedShapeIndex ? "blue" : "red";
-      ctx.lineWidth = 2;
+    drawingsRef.current.forEach((shape) => {
+      if (shape === currentShape || shape.type !== "rectangle") return;
 
-      if (draw.type === "line") {
-        ctx.moveTo(draw.start.x, draw.start.y);
-        ctx.lineTo(draw.end.x, draw.end.y);
-      } else if (draw.type === "rectangle") {
-        ctx.rect(
-          draw.start.x,
-          draw.start.y,
-          draw.end.x - draw.start.x,
-          draw.end.y - draw.start.y
-        );
-      } else if (draw.type === "horizontal") {
-        ctx.moveTo(0, draw.start.y);
-        ctx.lineTo(canvas.width, draw.start.y);
-      } else if (draw.type === "vertical") {
-        ctx.moveTo(draw.start.x, 0);
-        ctx.lineTo(draw.start.x, canvas.height);
-      } else if (draw.type === "cross") {
-        ctx.moveTo(0, draw.start.y);
-        ctx.lineTo(canvas.width, draw.start.y);
-        ctx.moveTo(draw.start.x, 0);
-        ctx.lineTo(draw.start.x, canvas.height);
+      const { start: existingStart, end: existingEnd } = shape;
+      const existingLeft = Math.min(existingStart.x, existingEnd.x);
+      const existingRight = Math.max(existingStart.x, existingEnd.x);
+      const existingTop = Math.min(existingStart.y, existingEnd.y);
+      const existingBottom = Math.max(existingStart.y, existingEnd.y);
+
+      const currentLeft = Math.min(start.x, end.x);
+      const currentRight = Math.max(start.x, end.x);
+      const currentTop = Math.min(start.y, end.y);
+      const currentBottom = Math.max(start.y, end.y);
+
+      if (Math.abs(currentLeft - existingRight) <= threshold) {
+        if (start.x < end.x) {
+          newStart.x = existingRight;
+        } else {
+          newEnd.x = existingRight;
+        }
       }
-
-      ctx.stroke();
+      if (Math.abs(currentRight - existingLeft) <= threshold) {
+        if (start.x > end.x) {
+          newStart.x = existingLeft;
+        } else {
+          newEnd.x = existingLeft;
+        }
+      }
+      if (Math.abs(currentTop - existingBottom) <= threshold) {
+        if (start.y < end.y) {
+          newStart.y = existingBottom;
+        } else {
+          newEnd.y = existingBottom;
+        }
+      }
+      if (Math.abs(currentBottom - existingTop) <= threshold) {
+        if (start.y > end.y) {
+          newStart.y = existingTop;
+        } else {
+          newEnd.y = existingTop;
+        }
+      }
     });
 
-    newIntersections.forEach(({ x, y }) => {
-      ctx.beginPath();
-      ctx.fillStyle = "yellow";
-      ctx.arc(x, y, 5, 0, 2 * Math.PI);
-      ctx.fill();
-    });
+    return { start: newStart, end: newEnd };
   };
 
   const handleMouseDown = (e) => {
@@ -98,39 +132,70 @@ const DrawingCanvas = ({
     }
 
     console.log("DrawingCanvas: Mouse down event triggered.", { drawingMode });
+    console.log("Event target:", e.target);
 
-    const canvas = canvasRef.current;
-    if (!canvas) {
-      console.error("DrawingCanvas: Canvas ref is not available.");
+    const stage = e.target.getStage();
+    if (!stage) {
+      console.error("DrawingCanvas: Stage not found.");
       return;
     }
 
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    const snapped = snapToGrid(mouseX, mouseY);
+    const pos = stage.getPointerPosition();
+    if (!pos) {
+      console.error("DrawingCanvas: Pointer position not found.");
+      return;
+    }
+
+    const snapped = snapToGrid(pos.x, pos.y);
+
+    // 确保 e.target 存在且是 Konva 节点
+    if (e.target && e.target.nodeType) {
+      // 使用 nodeType 检查是否为 Konva 节点
+      if (e.target.nodeType === "Shape" && e.target.className === "Circle") {
+        // 点击了交点
+        const id = e.target.attrs.id;
+        setSelectedWalls((prevSelected) => {
+          if (prevSelected.includes(id)) {
+            return prevSelected.filter((wallId) => wallId !== id);
+          } else {
+            return [...prevSelected, id];
+          }
+        });
+        return;
+      }
+
+      if (e.target.nodeType === "Shape" && e.target.className === "Shape") {
+        // 点击了房间
+        const roomIndex = e.target.attrs.roomIndex;
+        setSelectedRoom(roomIndex);
+        console.log("Room selected:", roomIndex);
+        return;
+      }
+    }
 
     if (drawingMode === "select") {
-      const foundIndex = drawingsRef.current.findIndex(
-        (shape) =>
-          mouseX >= Math.min(shape.start.x, shape.end.x) &&
-          mouseX <= Math.max(shape.start.x, shape.end.x) &&
-          mouseY >= Math.min(shape.start.y, shape.end.y) &&
-          mouseY <= Math.max(shape.start.y, shape.end.y)
-      );
+      const foundIndex = drawingsRef.current.findIndex((shape) => {
+        if (shape.type === "rectangle") {
+          return (
+            pos.x >= Math.min(shape.start.x, shape.end.x) &&
+            pos.x <= Math.max(shape.start.x, shape.end.x) &&
+            pos.y >= Math.min(shape.start.y, shape.end.y) &&
+            pos.y <= Math.max(shape.start.y, shape.end.y)
+          );
+        }
+        return false;
+      });
 
       if (foundIndex !== -1) {
         setSelectedShapeIndex(foundIndex);
         setIsDragging(true);
         const shape = drawingsRef.current[foundIndex];
-        setOffset({ x: mouseX - shape.start.x, y: mouseY - shape.start.y });
+        setOffset({ x: pos.x - shape.start.x, y: pos.y - shape.start.y });
         console.log("DrawingCanvas: Selected shape at index:", foundIndex);
       } else {
         setSelectedShapeIndex(null);
         console.log("DrawingCanvas: No shape selected.");
       }
-
-      redrawCanvas();
       return;
     } else {
       setIsDrawing(true);
@@ -146,11 +211,9 @@ const DrawingCanvas = ({
     }
 
     if (isDragging && selectedShapeIndex !== null) {
-      const canvas = canvasRef.current;
-      const rect = canvas.getBoundingClientRect();
-      const currentX = e.clientX - rect.left;
-      const currentY = e.clientY - rect.top;
-      const snapped = snapToGrid(currentX, currentY);
+      const stage = e.target.getStage();
+      const pos = stage.getPointerPosition();
+      const snapped = snapToGrid(pos.x, pos.y);
 
       const selectedShape = drawingsRef.current[selectedShapeIndex];
       const width = selectedShape.end.x - selectedShape.start.x;
@@ -161,45 +224,32 @@ const DrawingCanvas = ({
       selectedShape.end.x = selectedShape.start.x + width;
       selectedShape.end.y = selectedShape.start.y + height;
 
-      redrawCanvas();
       console.log("DrawingCanvas: Dragging shape to:", snapped);
       return;
     }
 
     if (!isDrawing) return;
 
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    const rect = canvas.getBoundingClientRect();
-    const currentX = e.clientX - rect.left;
-    const currentY = e.clientY - rect.top;
-    const snapped = snapToGrid(currentX, currentY);
+    const stage = e.target.getStage();
+    const pos = stage.getPointerPosition();
+    let snapped = snapToGrid(pos.x, pos.y);
 
-    redrawCanvas();
-
-    ctx.beginPath();
-    ctx.strokeStyle = "blue";
-    ctx.lineWidth = 2;
-
-    if (drawingMode === "line") {
-      ctx.moveTo(startPos.x, startPos.y);
-      ctx.lineTo(snapped.x, snapped.y);
-    } else if (drawingMode === "rectangle") {
-      ctx.rect(
-        startPos.x,
-        startPos.y,
-        snapped.x - startPos.x,
-        snapped.y - startPos.y
-      );
-    } else if (drawingMode === "horizontal-line") {
-      ctx.moveTo(startPos.x, startPos.y);
-      ctx.lineTo(snapped.x, startPos.y);
-    } else if (drawingMode === "vertical-line") {
-      ctx.moveTo(startPos.x, startPos.y);
-      ctx.lineTo(startPos.x, snapped.y);
+    if (drawingMode === "rectangle") {
+      const currentShape = {
+        type: "rectangle",
+        start: startPos,
+        end: snapped,
+      };
+      const snappedShape = snapToNearbyRectangle(currentShape);
+      snapped = snappedShape.end;
     }
 
-    ctx.stroke();
+    setTempDrawing({
+      type: drawingMode === "line" ? "line" : "rectangle",
+      start: startPos,
+      end: snapped,
+    });
+
     console.log("DrawingCanvas: Drawing in progress to:", snapped);
   };
 
@@ -220,16 +270,24 @@ const DrawingCanvas = ({
     if (drawingMode === "select") return;
 
     setIsDrawing(false);
-    const canvas = canvasRef.current;
-    if (!canvas) {
-      console.error("DrawingCanvas: Canvas ref is not available.");
+    const stage = e.target.getStage();
+    if (!stage) {
+      console.error("DrawingCanvas: Stage not found.");
       return;
     }
 
-    const rect = canvas.getBoundingClientRect();
-    const endX = e.clientX - rect.left;
-    const endY = e.clientY - rect.top;
-    const snappedEnd = snapToGrid(endX, endY);
+    const pos = stage.getPointerPosition();
+    let snappedEnd = snapToGrid(pos.x, pos.y);
+
+    if (drawingMode === "rectangle") {
+      const currentShape = {
+        type: "rectangle",
+        start: startPos,
+        end: snappedEnd,
+      };
+      const snappedShape = snapToNearbyRectangle(currentShape);
+      snappedEnd = snappedShape.end;
+    }
 
     let type = "line";
     let finalEndX = snappedEnd.x;
@@ -241,27 +299,29 @@ const DrawingCanvas = ({
         selectedModes.includes("Vertical")
       ) {
         type = "cross";
-        finalEndX = canvas.width;
-        finalEndY = canvas.height;
+        finalEndX = stage.width();
+        finalEndY = stage.height();
       } else if (selectedModes.includes("Horizontal")) {
         type = "horizontal";
-        finalEndX = canvas.width;
+        finalEndX = stage.width();
         finalEndY = startPos.y;
       } else if (selectedModes.includes("Vertical")) {
         type = "vertical";
         finalEndX = startPos.x;
-        finalEndY = canvas.height;
+        finalEndY = stage.height();
       }
     } else if (drawingMode === "rectangle") {
       type = "rectangle";
     }
+
     drawingsRef.current.push({
       type,
       start: startPos,
       end: { x: finalEndX, y: finalEndY },
     });
 
-    redrawCanvas();
+    setTempDrawing(null);
+
     console.log("DrawingCanvas: Finished drawing:", {
       type,
       start: startPos,
@@ -273,7 +333,6 @@ const DrawingCanvas = ({
     if (selectedShapeIndex !== null) {
       drawingsRef.current.splice(selectedShapeIndex, 1);
       setSelectedShapeIndex(null);
-      redrawCanvas();
       console.log(
         "DrawingCanvas: Deleted selected shape at index:",
         selectedShapeIndex
@@ -300,9 +359,13 @@ const DrawingCanvas = ({
           drawingsRef.current[j]
         );
         if (intersection) {
-          newIntersections.push(intersection);
+          if (Array.isArray(intersection)) {
+            newIntersections.push(...intersection);
+          } else {
+            newIntersections.push(intersection);
+          }
           console.log(
-            `✅ Intersection found at: (${intersection.x}, ${intersection.y})`
+            `✅ Intersection found at: ${JSON.stringify(intersection)}`
           );
         }
       }
@@ -311,11 +374,40 @@ const DrawingCanvas = ({
     newWalls = generateWallsFromIntersections(newIntersections);
     setWalls(newWalls);
     setIntersections(newIntersections);
-    redrawCanvas(newIntersections);
+
+    detectRooms(newIntersections);
   };
 
   const findIntersection = (shape1, shape2) => {
     console.log("🔍 Checking intersection between:", shape1, shape2);
+
+    if (shape1.type === "rectangle") {
+      return getRectangleIntersection(shape1, shape2);
+    }
+    if (shape2.type === "rectangle") {
+      return getRectangleIntersection(shape2, shape1);
+    }
+
+    if (shape1.type === "horizontal") {
+      return getHorizontalIntersection(shape1, shape2);
+    }
+    if (shape2.type === "horizontal") {
+      return getHorizontalIntersection(shape2, shape1);
+    }
+
+    if (shape1.type === "vertical") {
+      return getVerticalIntersection(shape1, shape2);
+    }
+    if (shape2.type === "vertical") {
+      return getVerticalIntersection(shape2, shape1);
+    }
+
+    if (shape1.type === "cross") {
+      return getCrossIntersection(shape1, shape2);
+    }
+    if (shape2.type === "cross") {
+      return getCrossIntersection(shape2, shape1);
+    }
 
     if (shape1.type === "line" && shape2.type === "line") {
       return getLineIntersection(
@@ -324,24 +416,6 @@ const DrawingCanvas = ({
         shape2.start,
         shape2.end
       );
-    }
-
-    if (shape1.type === "horizontal" || shape2.type === "horizontal") {
-      return getHorizontalIntersection(shape1, shape2);
-    }
-    if (shape1.type === "vertical" || shape2.type === "vertical") {
-      return getVerticalIntersection(shape1, shape2);
-    }
-
-    if (shape1.type === "rectangle" || shape2.type === "rectangle") {
-      return getRectangleIntersection(shape1, shape2);
-    }
-
-    if (shape1.type === "cross") {
-      return getCrossIntersection(shape1, shape2);
-    }
-    if (shape2.type === "cross") {
-      return getCrossIntersection(shape2, shape1);
     }
 
     console.log("❌ No intersection found.");
@@ -354,15 +428,17 @@ const DrawingCanvas = ({
 
     if (shape.type === "line") {
       intersection = getLineIntersection(
-        { x: 0, y: y },
-        { x: canvasRef.current.width, y: y },
+        { x: 0, y },
+        { x: stageRef.current?.width() || dimensions.width, y },
         shape.start,
         shape.end
       );
     } else if (shape.type === "vertical") {
-      intersection = { x: shape.start.x, y: y };
+      intersection = { x: shape.start.x, y };
     } else if (shape.type === "rectangle") {
       intersection = getRectangleIntersection(shape, horizontal);
+    } else if (shape.type === "cross") {
+      return getCrossIntersection(shape, horizontal);
     }
 
     return intersection;
@@ -374,15 +450,17 @@ const DrawingCanvas = ({
 
     if (shape.type === "line") {
       intersection = getLineIntersection(
-        { x: x, y: 0 },
-        { x: x, y: canvasRef.current.height },
+        { x, y: 0 },
+        { x, y: stageRef.current?.height() || dimensions.height },
         shape.start,
         shape.end
       );
     } else if (shape.type === "horizontal") {
-      intersection = { x: x, y: shape.start.y };
+      intersection = { x, y: shape.start.y };
     } else if (shape.type === "rectangle") {
       intersection = getRectangleIntersection(shape, vertical);
+    } else if (shape.type === "cross") {
+      return getCrossIntersection(shape, vertical);
     }
 
     return intersection;
@@ -418,22 +496,67 @@ const DrawingCanvas = ({
           edge.start,
           edge.end,
           { x: 0, y: shape.start.y },
-          { x: canvasRef.current.width, y: shape.start.y }
+          { x: stageRef.current?.width() || dimensions.width, y: shape.start.y }
         );
       } else if (shape.type === "vertical") {
         intersection = getLineIntersection(
           edge.start,
           edge.end,
           { x: shape.start.x, y: 0 },
-          { x: shape.start.x, y: canvasRef.current.height }
+          {
+            x: shape.start.x,
+            y: stageRef.current?.height() || dimensions.height,
+          }
         );
-      } else {
+      } else if (shape.type === "line") {
         intersection = getLineIntersection(
           edge.start,
           edge.end,
           shape.start,
           shape.end
         );
+      } else if (shape.type === "cross") {
+        const crossIntersections = getCrossIntersection(shape, {
+          type: "line",
+          start: edge.start,
+          end: edge.end,
+        });
+        if (crossIntersections) {
+          intersections.push(...crossIntersections);
+        }
+        return;
+      } else if (shape.type === "rectangle") {
+        const shapeEdges = [
+          {
+            start: { x: shape.start.x, y: shape.start.y },
+            end: { x: shape.end.x, y: shape.start.y },
+          },
+          {
+            start: { x: shape.end.x, y: shape.start.y },
+            end: { x: shape.end.x, y: shape.end.y },
+          },
+          {
+            start: { x: shape.end.x, y: shape.end.y },
+            end: { x: shape.start.x, y: shape.end.y },
+          },
+          {
+            start: { x: shape.start.x, y: shape.end.y },
+            end: { x: shape.start.x, y: shape.start.y },
+          },
+        ];
+
+        shapeEdges.forEach((shapeEdge) => {
+          const intersect = getLineIntersection(
+            edge.start,
+            edge.end,
+            shapeEdge.start,
+            shapeEdge.end
+          );
+          if (intersect) {
+            intersections.push(intersect);
+          }
+        });
+        return intersections.length > 0 ? intersections : null;
       }
 
       if (intersection) {
@@ -484,11 +607,17 @@ const DrawingCanvas = ({
     const crossLines = [
       {
         start: { x: 0, y: cross.start.y },
-        end: { x: canvasRef.current.width, y: cross.start.y },
+        end: {
+          x: stageRef.current?.width() || dimensions.width,
+          y: cross.start.y,
+        },
       },
       {
         start: { x: cross.start.x, y: 0 },
-        end: { x: cross.start.x, y: canvasRef.current.height },
+        end: {
+          x: cross.start.x,
+          y: stageRef.current?.height() || dimensions.height,
+        },
       },
     ];
 
@@ -502,22 +631,34 @@ const DrawingCanvas = ({
           line.start,
           line.end,
           { x: 0, y: shape.start.y },
-          { x: canvasRef.current.width, y: shape.start.y }
+          { x: stageRef.current?.width() || dimensions.width, y: shape.start.y }
         );
       } else if (shape.type === "vertical") {
         intersection = getLineIntersection(
           line.start,
           line.end,
           { x: shape.start.x, y: 0 },
-          { x: shape.start.x, y: canvasRef.current.height }
+          {
+            x: shape.start.x,
+            y: stageRef.current?.height() || dimensions.height,
+          }
         );
-      } else {
+      } else if (shape.type === "line") {
         intersection = getLineIntersection(
           line.start,
           line.end,
           shape.start,
           shape.end
         );
+      } else if (shape.type === "rectangle") {
+        const rectIntersections = getRectangleIntersection(
+          { type: "rectangle", start: shape.start, end: shape.end },
+          { type: "line", start: line.start, end: line.end }
+        );
+        if (rectIntersections) {
+          intersections.push(...rectIntersections);
+        }
+        return;
       }
 
       if (intersection) {
@@ -543,22 +684,198 @@ const DrawingCanvas = ({
     }));
   };
 
+  const detectRooms = (intersections) => {
+    const selectedPoints = intersections.filter((point, index) =>
+      selectedWalls.includes(index + 1)
+    );
+
+    if (selectedPoints.length < 3) return;
+
+    const points = selectedPoints.map((point) => ({
+      x: point.x,
+      y: point.y,
+    }));
+
+    setRooms((prev) => [...prev, { points }]);
+    console.log("Room detected:", { points });
+  };
+
+  const handleIntersectionClick = (id) => {
+    setSelectedWalls((prevSelected) => {
+      if (prevSelected.includes(id)) {
+        return prevSelected.filter((wallId) => wallId !== id);
+      } else {
+        return [...prevSelected, id];
+      }
+    });
+  };
+
+  const handleRoomClick = (index) => {
+    setSelectedRoom(index);
+    console.log("Room selected:", index);
+  };
+
+  // 错误边界：捕获渲染错误
+  if (error) {
+    return <div>Error in DrawingCanvas: {error.message}</div>;
+  }
+
   return (
-    <canvas
-      ref={canvasRef}
-      width={canvasRef.current?.parentElement?.offsetWidth ?? "70%"}
-      height={canvasRef.current?.parentElement?.offsetHeight ?? "100%"}
+    <div
+      ref={containerRef}
       style={{
         position: "absolute",
         top: 0,
         left: 0,
-        zIndex: isPicking ? 0 : 1,
-        pointerEvents: isPicking ? "none" : "auto", // 禁用点击事件
+        width: "70vw",
+        height: "100vh",
       }}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-    />
+    >
+      <Stage
+        ref={stageRef}
+        width={dimensions.width}
+        height={dimensions.height}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          zIndex: isPicking ? 0 : 1,
+          pointerEvents: isPicking ? "none" : "auto",
+        }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+      >
+        <Layer>
+          {drawingsRef.current.map((draw, index) => {
+            if (draw.type === "line") {
+              return (
+                <Line
+                  key={index}
+                  points={[draw.start.x, draw.start.y, draw.end.x, draw.end.y]}
+                  stroke={index === selectedShapeIndex ? "blue" : "red"}
+                  strokeWidth={2}
+                />
+              );
+            } else if (draw.type === "rectangle") {
+              return (
+                <Rect
+                  key={index}
+                  x={Math.min(draw.start.x, draw.end.x)}
+                  y={Math.min(draw.start.y, draw.end.y)}
+                  width={Math.abs(draw.end.x - draw.start.x)}
+                  height={Math.abs(draw.end.y - draw.start.y)}
+                  stroke={index === selectedShapeIndex ? "blue" : "red"}
+                  strokeWidth={2}
+                />
+              );
+            } else if (draw.type === "horizontal") {
+              return (
+                <Line
+                  key={index}
+                  points={[0, draw.start.y, dimensions.width, draw.start.y]}
+                  stroke={index === selectedShapeIndex ? "blue" : "red"}
+                  strokeWidth={2}
+                />
+              );
+            } else if (draw.type === "vertical") {
+              return (
+                <Line
+                  key={index}
+                  points={[draw.start.x, 0, draw.start.x, dimensions.height]}
+                  stroke={index === selectedShapeIndex ? "blue" : "red"}
+                  strokeWidth={2}
+                />
+              );
+            } else if (draw.type === "cross") {
+              return (
+                <React.Fragment key={index}>
+                  <Line
+                    points={[0, draw.start.y, dimensions.width, draw.start.y]}
+                    stroke={index === selectedShapeIndex ? "blue" : "red"}
+                    strokeWidth={2}
+                  />
+                  <Line
+                    points={[draw.start.x, 0, draw.start.x, dimensions.height]}
+                    stroke={index === selectedShapeIndex ? "blue" : "red"}
+                    strokeWidth={2}
+                  />
+                </React.Fragment>
+              );
+            }
+            return null;
+          })}
+
+          {tempDrawing && (
+            <>
+              {tempDrawing.type === "line" && (
+                <Line
+                  points={[
+                    tempDrawing.start.x,
+                    tempDrawing.start.y,
+                    tempDrawing.end.x,
+                    tempDrawing.end.y,
+                  ]}
+                  stroke="blue"
+                  strokeWidth={2}
+                />
+              )}
+              {tempDrawing.type === "rectangle" && (
+                <Rect
+                  x={Math.min(tempDrawing.start.x, tempDrawing.end.x)}
+                  y={Math.min(tempDrawing.start.y, tempDrawing.end.y)}
+                  width={Math.abs(tempDrawing.end.x - tempDrawing.start.x)}
+                  height={Math.abs(tempDrawing.end.y - tempDrawing.start.y)}
+                  stroke="blue"
+                  strokeWidth={2}
+                />
+              )}
+            </>
+          )}
+
+          {intersections.map((point, index) => (
+            <Circle
+              key={index}
+              id={String(index + 1)} // 确保 id 是字符串
+              x={point.x}
+              y={point.y}
+              radius={selectedWalls.includes(index + 1) ? 7 : 5}
+              fill={selectedWalls.includes(index + 1) ? "orange" : "yellow"}
+              stroke="black"
+              strokeWidth={1}
+              onClick={() => handleIntersectionClick(index + 1)}
+              onTap={() => handleIntersectionClick(index + 1)}
+            />
+          ))}
+
+          {rooms.map((room, index) => (
+            <Shape
+              key={index}
+              roomIndex={index}
+              sceneFunc={(context, shape) => {
+                context.beginPath();
+                const points = room.points;
+                context.moveTo(points[0].x, points[0].y);
+                for (let i = 1; i < points.length; i++) {
+                  context.lineTo(points[i].x, points[i].y);
+                }
+                context.closePath();
+                context.fillStrokeShape(shape);
+              }}
+              fill={
+                selectedRoom === index
+                  ? "rgba(0, 128, 255, 0.3)"
+                  : "rgba(0, 255, 0, 0.2)"
+              }
+              stroke={selectedRoom === index ? "blue" : "green"}
+              strokeWidth={2}
+              onClick={() => handleRoomClick(index)}
+              onTap={() => handleRoomClick(index)}
+            />
+          ))}
+        </Layer>
+      </Stage>
+    </div>
   );
 };
 

@@ -13,11 +13,11 @@ import { Form, Button } from "react-bootstrap";
 import "./style.css";
 
 export const MacbookAir = () => {
-  const [computerActive, setComputerActive] = useState(false);
   const [drawingMode, setDrawingMode] = useState(null);
   const [selectedModes, setSelectedModes] = useState([]);
   const [computeIntersections, setComputeIntersections] = useState(false);
   const [walls, setWalls] = useState([]);
+  const [selectedWalls, setSelectedWalls] = useState([]); // 管理选中的交点
   const [locations, setLocations] = useState([]);
   const [tempLocation, setTempLocation] = useState(null);
   const [mapData, setMapData] = useState(null);
@@ -143,6 +143,8 @@ export const MacbookAir = () => {
                   setWalls={setWalls}
                   showGrid={viewOptions.includes("Grid View")}
                   isPicking={isPicking}
+                  selectedWalls={selectedWalls}
+                  setSelectedWalls={setSelectedWalls}
                 />
               </>
             ) : (
@@ -178,6 +180,9 @@ export const MacbookAir = () => {
                 handleComputeIntersections={handleComputeIntersections}
                 walls={walls}
                 showGrid={viewOptions.includes("Grid View")}
+                setIsPicking={setIsPicking}
+                selectedWalls={selectedWalls} // 传递 selectedWalls
+                setSelectedWalls={setSelectedWalls} // 传递 setSelectedWalls
               />
               <LabelSelection
                 name={name}
