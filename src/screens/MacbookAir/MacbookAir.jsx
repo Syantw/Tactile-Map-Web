@@ -13,11 +13,12 @@ import { Form, Button } from "react-bootstrap";
 import "./style.css";
 
 export const MacbookAir = () => {
+  const [computerActive, setComputerActive] = useState(false);
   const [drawingMode, setDrawingMode] = useState(null);
   const [selectedModes, setSelectedModes] = useState([]);
   const [computeIntersections, setComputeIntersections] = useState(false);
   const [walls, setWalls] = useState([]);
-  const [selectedWalls, setSelectedWalls] = useState([]); // 管理选中的交点
+  const [selectedWalls, setSelectedWalls] = useState([]);
   const [locations, setLocations] = useState([]);
   const [tempLocation, setTempLocation] = useState(null);
   const [mapData, setMapData] = useState(null);
@@ -28,6 +29,7 @@ export const MacbookAir = () => {
   const [viewOptions, setViewOptions] = useState([]);
   const [highlightedLocation, setHighlightedLocation] = useState(null);
   const [isPicking, setIsPicking] = useState(false);
+  const [rooms, setRooms] = useState([]);
 
   useEffect(() => {
     fetch("/space_scan.json")
@@ -72,6 +74,15 @@ export const MacbookAir = () => {
 
   const handleFileUpload = (file) => {
     console.log("Uploaded file:", file);
+  };
+
+  const detectRooms = (points) => {
+    if (points.length < 3) {
+      console.warn("At least 3 points are required to form a room.");
+      return;
+    }
+    setRooms((prev) => [...prev, { points, metadata: { name: "", id: "" } }]);
+    console.log("Room formed in MacbookAir:", { points });
   };
 
   return (
@@ -137,6 +148,7 @@ export const MacbookAir = () => {
                 />
                 <DrawingCanvas
                   drawingMode={drawingMode}
+                  setDrawingMode={setDrawingMode}
                   selectedModes={selectedModes}
                   computeIntersections={computeIntersections}
                   setComputeIntersections={setComputeIntersections}
@@ -145,6 +157,9 @@ export const MacbookAir = () => {
                   isPicking={isPicking}
                   selectedWalls={selectedWalls}
                   setSelectedWalls={setSelectedWalls}
+                  detectRooms={detectRooms}
+                  setRooms={setRooms}
+                  rooms={rooms}
                 />
               </>
             ) : (
@@ -181,8 +196,9 @@ export const MacbookAir = () => {
                 walls={walls}
                 showGrid={viewOptions.includes("Grid View")}
                 setIsPicking={setIsPicking}
-                selectedWalls={selectedWalls} // 传递 selectedWalls
-                setSelectedWalls={setSelectedWalls} // 传递 setSelectedWalls
+                selectedWalls={selectedWalls}
+                setSelectedWalls={setSelectedWalls}
+                detectRooms={detectRooms}
               />
               <LabelSelection
                 name={name}

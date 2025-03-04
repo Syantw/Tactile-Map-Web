@@ -4,6 +4,7 @@ import { Select } from "../Segment/Select";
 import { RadioGroup } from "../RadioGroupWrapper/RadioGroup";
 import { ComputerButton } from "../ComputerButton";
 import WallList from "../WallList/WallList";
+import CustomButton from "../CustomizedButton/CustomizedButton";
 
 // 新增 Rectangle 组件
 const Rectangle = ({ className, mingcutePenLine, isSelected, onClick }) => {
@@ -12,16 +13,12 @@ const Rectangle = ({ className, mingcutePenLine, isSelected, onClick }) => {
       className={`line ${className} ${isSelected ? "default" : "unselect"}`}
       onClick={onClick}
     >
-      <svg
+      <img
         className="mingcute-pen-line"
-        viewBox="0 0 1024 1024"
-        width="200"
-        height="200"
-        fill="white"
-      >
-        <path d="M841.34 959.36H182.66c-65.06 0-117.99-52.94-117.99-118.02V182.69c0-65.08 52.94-118.04 117.99-118.04h658.68c65.06 0 117.99 52.96 117.99 118.04v658.65c0 65.08-52.93 118.02-117.99 118.02zM182.66 142.17c-22.31 0-40.51 18.18-40.51 40.51v658.65c0 22.34 18.2 40.49 40.51 40.49h658.68c22.31 0 40.51-18.15 40.51-40.49V182.69c0-22.34-18.2-40.51-40.51-40.51H182.66z" />
-      </svg>
-      <div className="text-wrapper">Rec</div>
+        alt="Mingcute pen line"
+        src={mingcutePenLine}
+      />
+      <div className="text-wrapper">Rectangle</div>
     </div>
   );
 };
@@ -37,6 +34,7 @@ const Segment_Section = ({
   setIsPicking,
   selectedWalls,
   setSelectedWalls,
+  detectRooms,
 }) => {
   const [activeTab, setActiveTab] = useState(null);
 
@@ -44,8 +42,30 @@ const Segment_Section = ({
     const newMode = activeTab === mode ? null : mode;
     setActiveTab(newMode);
     setDrawingMode(newMode);
-    setIsPicking(false); // 确保切换模式时关闭点位标记模式
+    setIsPicking(false);
     console.log(`Drawing mode set to: ${newMode}, isPicking: false`);
+  };
+
+  const handleFormRoom = () => {
+    const selectedPoints = walls
+      .filter((wall) => selectedWalls.includes(wall.id))
+      .map((wall) => wall.position);
+
+    if (selectedPoints.length < 3) {
+      console.warn("At least 3 points are required to form a room.");
+      return;
+    }
+
+    const points = selectedPoints.map((point) => ({
+      x: point.x,
+      y: point.y,
+    }));
+
+    detectRooms(points);
+
+    setDrawingMode("select");
+    setActiveTab("select");
+    console.log("Formed room with points:", points);
   };
 
   return (
@@ -95,11 +115,28 @@ const Segment_Section = ({
         onClick={handleComputeIntersections}
         Type="Compute"
       />
-      <WallList
-        walls={walls}
-        selectedWalls={selectedWalls}
-        setSelectedWalls={setSelectedWalls}
-      />
+
+      {/* 只有在 drawingMode 为 line 时显示 WallList 和 Form Room 按钮 */}
+      {drawingMode === "line" && (
+        <>
+          <WallList
+            walls={walls}
+            selectedWalls={selectedWalls}
+            setSelectedWalls={setSelectedWalls}
+          />
+          <CustomButton
+            style={{
+              width: "100%",
+              height: "29px",
+              fontSize: "12px",
+              marginTop: "10px",
+            }}
+            onClick={handleFormRoom}
+          >
+            Form Room
+          </CustomButton>
+        </>
+      )}
 
       <img
         className="vector-3"
