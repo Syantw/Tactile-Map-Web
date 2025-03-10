@@ -16,6 +16,9 @@ const DrawingCanvas = ({
   detectRooms,
   setRooms,
   rooms: parentRooms,
+  selectedRoom,
+  setSelectedRoom, // 确保解构 setSelectedRoom
+  refineMode,
 }) => {
   if (!drawingMode) return null;
 
@@ -31,7 +34,6 @@ const DrawingCanvas = ({
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [intersections, setIntersections] = useState([]);
   const [rooms, setLocalRooms] = useState(parentRooms || []); // 房间列表，包含 metadata
-  const [selectedRoom, setSelectedRoom] = useState(null);
   const [isEditingRoomInfo, setIsEditingRoomInfo] = useState(false); // 控制信息框编辑状态
   const [editingRoomInfo, setEditingRoomInfo] = useState({ name: "", id: "" }); // 临时存储编辑中的信息
   const [error, setError] = useState(null);
@@ -60,18 +62,50 @@ const DrawingCanvas = ({
       setComputeIntersections(false);
     }
 
+    const deleteSelectedRoom = () => {
+      if (selectedRoom !== null) {
+        setRooms((prev) => {
+          const newRooms = [...prev];
+          newRooms.splice(selectedRoom, 1);
+          return newRooms;
+        });
+        setLocalRooms((prev) => {
+          const newRooms = [...prev];
+          newRooms.splice(selectedRoom, 1);
+          return newRooms;
+        });
+        setSelectedRoom(null);
+        setIsEditingRoomInfo(false);
+        setEditingRoomInfo({ name: "", id: "" });
+        console.log(
+          "DrawingCanvas: Deleted selected room at index:",
+          selectedRoom
+        );
+      }
+    };
+
     const handleKeyDown = (e) => {
       if (e.key === "Delete" || e.key === "Backspace") {
-        deleteSelectedShape();
+        if (selectedShapeIndex !== null) {
+          deleteSelectedShape();
+        }
+        if (selectedRoom !== null) {
+          deleteSelectedRoom();
+        }
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [drawingMode, selectedShapeIndex, selectedModes, computeIntersections]);
+  }, [
+    drawingMode,
+    selectedShapeIndex,
+    selectedModes,
+    computeIntersections,
+    selectedRoom,
+  ]);
 
   useEffect(() => {
-    // 同步父组件的 rooms 状态
     setLocalRooms(parentRooms || []);
   }, [parentRooms]);
 
@@ -102,32 +136,20 @@ const DrawingCanvas = ({
       const currentBottom = Math.max(start.y, end.y);
 
       if (Math.abs(currentLeft - existingRight) <= threshold) {
-        if (start.x < end.x) {
-          newStart.x = existingRight;
-        } else {
-          newEnd.x = existingRight;
-        }
+        if (start.x < end.x) newStart.x = existingRight;
+        else newEnd.x = existingRight;
       }
       if (Math.abs(currentRight - existingLeft) <= threshold) {
-        if (start.x > end.x) {
-          newStart.x = existingLeft;
-        } else {
-          newEnd.x = existingLeft;
-        }
+        if (start.x > end.x) newStart.x = existingLeft;
+        else newEnd.x = existingLeft;
       }
       if (Math.abs(currentTop - existingBottom) <= threshold) {
-        if (start.y < end.y) {
-          newStart.y = existingBottom;
-        } else {
-          newEnd.y = existingBottom;
-        }
+        if (start.y < end.y) newStart.y = existingBottom;
+        else newEnd.y = existingBottom;
       }
       if (Math.abs(currentBottom - existingTop) <= threshold) {
-        if (start.y > end.y) {
-          newStart.y = existingTop;
-        } else {
-          newEnd.y = existingTop;
-        }
+        if (start.y > end.y) newStart.y = existingTop;
+        else newEnd.y = existingTop;
       }
     });
 
@@ -135,10 +157,7 @@ const DrawingCanvas = ({
   };
 
   const handleMouseDown = (e) => {
-    if (isPicking) {
-      console.log("DrawingCanvas: In picking mode, drawing disabled.");
-      return;
-    }
+    if (isPicking) return;
 
     console.log("DrawingCanvas: Mouse down event triggered.", { drawingMode });
     console.log("Event target:", e.target);
@@ -157,31 +176,26 @@ const DrawingCanvas = ({
 
     const snapped = snapToGrid(pos.x, pos.y);
 
-    // 如果点击空白区域，隐藏信息框
     if (!(e.target.nodeType && e.target.className === "Shape")) {
       setSelectedRoom(null);
       setIsEditingRoomInfo(false);
-      setEditingRoomInfo({ name: "", id: "" }); // 重置编辑状态
+      setEditingRoomInfo({ name: "", id: "" });
     }
 
     if (e.target && e.target.nodeType) {
       if (e.target.nodeType === "Shape" && e.target.className === "Circle") {
         const id = e.target.attrs.id;
-        setSelectedWalls((prevSelected) => {
-          if (prevSelected.includes(id)) {
-            return prevSelected.filter((wallId) => wallId !== id);
-          } else {
-            return [...prevSelected, id];
-          }
-        });
+        setSelectedWalls((prev) =>
+          prev.includes(id)
+            ? prev.filter((wallId) => wallId !== id)
+            : [...prev, id]
+        );
         return;
       }
 
       if (e.target.nodeType === "Shape" && e.target.className === "Shape") {
         const roomIndex = e.target.attrs.roomIndex;
         setSelectedRoom(roomIndex);
-        console.log("Room selected:", roomIndex);
-        // 初始化编辑信息为当前房间的 metadata
         setEditingRoomInfo({
           name: rooms[roomIndex]?.metadata?.name || "",
           id: rooms[roomIndex]?.metadata?.id || "",
@@ -221,10 +235,7 @@ const DrawingCanvas = ({
   };
 
   const handleMouseMove = (e) => {
-    if (isPicking) {
-      console.log("DrawingCanvas: In picking mode, drawing disabled.");
-      return;
-    }
+    if (isPicking) return;
 
     if (isDragging && selectedShapeIndex !== null) {
       const stage = e.target.getStage();
@@ -251,11 +262,7 @@ const DrawingCanvas = ({
     let snapped = snapToGrid(pos.x, pos.y);
 
     if (drawingMode === "rectangle") {
-      const currentShape = {
-        type: "rectangle",
-        start: startPos,
-        end: snapped,
-      };
+      const currentShape = { type: "rectangle", start: startPos, end: snapped };
       const snappedShape = snapToNearbyRectangle(currentShape);
       snapped = snappedShape.end;
     }
@@ -270,10 +277,7 @@ const DrawingCanvas = ({
   };
 
   const handleMouseUp = (e) => {
-    if (isPicking) {
-      console.log("DrawingCanvas: In picking mode, drawing disabled.");
-      return;
-    }
+    if (isPicking) return;
 
     console.log("DrawingCanvas: Mouse up event triggered.");
 
@@ -391,11 +395,9 @@ const DrawingCanvas = ({
           drawingsRef.current[j]
         );
         if (intersection) {
-          if (Array.isArray(intersection)) {
+          if (Array.isArray(intersection))
             newIntersections.push(...intersection);
-          } else {
-            newIntersections.push(intersection);
-          }
+          else newIntersections.push(intersection);
           console.log(
             `✅ Intersection found at: ${JSON.stringify(intersection)}`
           );
@@ -411,33 +413,23 @@ const DrawingCanvas = ({
   const findIntersection = (shape1, shape2) => {
     console.log("🔍 Checking intersection between:", shape1, shape2);
 
-    if (shape1.type === "rectangle") {
+    if (shape1.type === "rectangle")
       return getRectangleIntersection(shape1, shape2);
-    }
-    if (shape2.type === "rectangle") {
+    if (shape2.type === "rectangle")
       return getRectangleIntersection(shape2, shape1);
-    }
 
-    if (shape1.type === "horizontal") {
+    if (shape1.type === "horizontal")
       return getHorizontalIntersection(shape1, shape2);
-    }
-    if (shape2.type === "horizontal") {
+    if (shape2.type === "horizontal")
       return getHorizontalIntersection(shape2, shape1);
-    }
 
-    if (shape1.type === "vertical") {
+    if (shape1.type === "vertical")
       return getVerticalIntersection(shape1, shape2);
-    }
-    if (shape2.type === "vertical") {
+    if (shape2.type === "vertical")
       return getVerticalIntersection(shape2, shape1);
-    }
 
-    if (shape1.type === "cross") {
-      return getCrossIntersection(shape1, shape2);
-    }
-    if (shape2.type === "cross") {
-      return getCrossIntersection(shape2, shape1);
-    }
+    if (shape1.type === "cross") return getCrossIntersection(shape1, shape2);
+    if (shape2.type === "cross") return getCrossIntersection(shape2, shape1);
 
     if (shape1.type === "line" && shape2.type === "line") {
       return getLineIntersection(
@@ -551,9 +543,7 @@ const DrawingCanvas = ({
           start: edge.start,
           end: edge.end,
         });
-        if (crossIntersections) {
-          intersections.push(...crossIntersections);
-        }
+        if (crossIntersections) intersections.push(...crossIntersections);
         return;
       } else if (shape.type === "rectangle") {
         const shapeEdges = [
@@ -582,16 +572,12 @@ const DrawingCanvas = ({
             shapeEdge.start,
             shapeEdge.end
           );
-          if (intersect) {
-            intersections.push(intersect);
-          }
+          if (intersect) intersections.push(intersect);
         });
         return intersections.length > 0 ? intersections : null;
       }
 
-      if (intersection) {
-        intersections.push(intersection);
-      }
+      if (intersection) intersections.push(intersection);
     });
 
     return intersections.length > 0 ? intersections : null;
@@ -653,15 +639,11 @@ const DrawingCanvas = ({
           { type: "rectangle", start: shape.start, end: shape.end },
           { type: "line", start: line.start, end: line.end }
         );
-        if (rectIntersections) {
-          intersections.push(...rectIntersections);
-        }
+        if (rectIntersections) intersections.push(...rectIntersections);
         return;
       }
 
-      if (intersection) {
-        intersections.push(intersection);
-      }
+      if (intersection) intersections.push(intersection);
     });
 
     if (intersections.length > 0) {
@@ -685,14 +667,11 @@ const DrawingCanvas = ({
     const c2 = a2 * p3.x + b2 * p3.y;
 
     const determinant = a1 * b2 - a2 * b1;
-    if (determinant === 0) {
-      return null; // 线段平行，无交点
-    }
+    if (determinant === 0) return null;
 
     const x = (b2 * c1 - b1 * c2) / determinant;
     const y = (a1 * c2 - a2 * c1) / determinant;
 
-    // 检查交点是否在两个线段的范围内
     if (
       Math.min(p1.x, p2.x) <= x &&
       x <= Math.max(p1.x, p2.x) &&
@@ -716,13 +695,9 @@ const DrawingCanvas = ({
   };
 
   const handleIntersectionClick = (id) => {
-    setSelectedWalls((prevSelected) => {
-      if (prevSelected.includes(id)) {
-        return prevSelected.filter((wallId) => wallId !== id);
-      } else {
-        return [...prevSelected, id];
-      }
-    });
+    setSelectedWalls((prev) =>
+      prev.includes(id) ? prev.filter((wallId) => wallId !== id) : [...prev, id]
+    );
   };
 
   const handleRoomClick = (index) => {
@@ -730,7 +705,6 @@ const DrawingCanvas = ({
     console.log("Room selected:", index);
   };
 
-  // 计算信息框和标签的位置（位于房间右侧）
   const getInfoBoxPosition = (room) => {
     if (!room || !room.points) return { x: 0, y: 0 };
     const points = room.points;
@@ -739,24 +713,16 @@ const DrawingCanvas = ({
     return { x: right + 10, y: top };
   };
 
-  // 更新临时编辑信息
   const handleRoomInfoChange = (field, value) => {
-    setEditingRoomInfo((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setEditingRoomInfo((prev) => ({ ...prev, [field]: value }));
   };
 
-  // 保存房间信息
   const saveRoomInfo = (index) => {
     setRooms((prev) => {
       const newRooms = [...prev];
       newRooms[index] = {
         ...newRooms[index],
-        metadata: {
-          name: editingRoomInfo.name,
-          id: editingRoomInfo.id,
-        },
+        metadata: { name: editingRoomInfo.name, id: editingRoomInfo.id },
       };
       return newRooms;
     });
@@ -764,17 +730,13 @@ const DrawingCanvas = ({
       const newRooms = [...prev];
       newRooms[index] = {
         ...newRooms[index],
-        metadata: {
-          name: editingRoomInfo.name,
-          id: editingRoomInfo.id,
-        },
+        metadata: { name: editingRoomInfo.name, id: editingRoomInfo.id },
       };
       return newRooms;
     });
     setIsEditingRoomInfo(false);
   };
 
-  // 取消编辑，恢复原始信息
   const cancelRoomInfoEdit = (index) => {
     setEditingRoomInfo({
       name: rooms[index]?.metadata?.name || "",
@@ -783,10 +745,38 @@ const DrawingCanvas = ({
     setIsEditingRoomInfo(false);
   };
 
-  // 错误边界：捕获渲染错误
-  if (error) {
-    return <div>Error in DrawingCanvas: {error.message}</div>;
-  }
+  const getRoomBounds = (room) => {
+    if (!room || !room.points)
+      return {
+        minX: 0,
+        minY: 0,
+        maxX: dimensions.width,
+        maxY: dimensions.height,
+      };
+    const points = room.points;
+    const minX = Math.min(...points.map((p) => p.x));
+    const minY = Math.min(...points.map((p) => p.y));
+    const maxX = Math.max(...points.map((p) => p.x));
+    const maxY = Math.max(...points.map((p) => p.y));
+    return { minX, minY, maxX, maxY };
+  };
+
+  const scaleFactor = refineMode && selectedRoom !== null ? 2 : 1; // 放大系数
+  const roomToShow =
+    refineMode && selectedRoom !== null ? rooms[selectedRoom] : null;
+  const bounds = roomToShow
+    ? getRoomBounds(roomToShow)
+    : { minX: 0, minY: 0, maxX: dimensions.width, maxY: dimensions.height };
+  const offsetX =
+    refineMode && selectedRoom !== null
+      ? (-bounds.minX * (scaleFactor - 1)) / 2
+      : 0;
+  const offsetY =
+    refineMode && selectedRoom !== null
+      ? (-bounds.minY * (scaleFactor - 1)) / 2
+      : 0;
+
+  if (error) return <div>Error in DrawingCanvas: {error.message}</div>;
 
   return (
     <div
@@ -801,14 +791,25 @@ const DrawingCanvas = ({
     >
       <Stage
         ref={stageRef}
-        width={dimensions.width}
-        height={dimensions.height}
+        width={
+          dimensions.width *
+          (refineMode && selectedRoom !== null ? scaleFactor : 1)
+        }
+        height={
+          dimensions.height *
+          (refineMode && selectedRoom !== null ? scaleFactor : 1)
+        }
         style={{
           position: "absolute",
           top: 0,
           left: 0,
           zIndex: isPicking ? 0 : 1,
           pointerEvents: isPicking ? "none" : "auto",
+          transformOrigin: "0 0",
+          transform:
+            refineMode && selectedRoom !== null
+              ? `scale(${scaleFactor}) translate(${offsetX}px, ${offsetY}px)`
+              : "none",
         }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -917,13 +918,71 @@ const DrawingCanvas = ({
             />
           ))}
 
-          {rooms.map((room, index) => (
-            <React.Fragment key={index}>
+          {(!refineMode || selectedRoom === null) &&
+            rooms.map((room, index) => (
+              <React.Fragment key={index}>
+                <Shape
+                  roomIndex={index}
+                  sceneFunc={(context, shape) => {
+                    context.beginPath();
+                    const points = room.points;
+                    context.moveTo(points[0].x, points[0].y);
+                    for (let i = 1; i < points.length; i++) {
+                      context.lineTo(points[i].x, points[i].y);
+                    }
+                    context.closePath();
+                    context.fillStrokeShape(shape);
+                  }}
+                  fill={
+                    selectedRoom === index
+                      ? "rgba(0, 128, 255, 0.3)"
+                      : "rgba(0, 255, 0, 0.2)"
+                  }
+                  stroke={selectedRoom === index ? "blue" : "green"}
+                  strokeWidth={2}
+                  onClick={() => handleRoomClick(index)}
+                  onTap={() => handleRoomClick(index)}
+                />
+                {selectedRoom !== index &&
+                  room.metadata &&
+                  (room.metadata.name || room.metadata.id) && (
+                    <>
+                      <Rect
+                        x={getInfoBoxPosition(room).x - 5}
+                        y={getInfoBoxPosition(room).y - 5}
+                        width={120}
+                        height={24}
+                        fill="white"
+                        cornerRadius={5}
+                        shadowBlur={5}
+                        shadowOffset={{ x: 2, y: 2 }}
+                        shadowOpacity={0.3}
+                      />
+                      <Text
+                        x={getInfoBoxPosition(room).x}
+                        y={getInfoBoxPosition(room).y}
+                        text={`${room.metadata.name || "Unnamed"} (${
+                          room.metadata.id || "No ID"
+                        })`}
+                        fontSize={12}
+                        fill="black"
+                        fontStyle="bold"
+                      />
+                    </>
+                  )}
+              </React.Fragment>
+            ))}
+
+          {refineMode && selectedRoom !== null && roomToShow && (
+            <React.Fragment>
               <Shape
-                roomIndex={index}
+                roomIndex={selectedRoom}
                 sceneFunc={(context, shape) => {
                   context.beginPath();
-                  const points = room.points;
+                  const points = roomToShow.points.map((p) => ({
+                    x: p.x * scaleFactor,
+                    y: p.y * scaleFactor,
+                  }));
                   context.moveTo(points[0].x, points[0].y);
                   for (let i = 1; i < points.length; i++) {
                     context.lineTo(points[i].x, points[i].y);
@@ -931,51 +990,37 @@ const DrawingCanvas = ({
                   context.closePath();
                   context.fillStrokeShape(shape);
                 }}
-                fill={
-                  selectedRoom === index
-                    ? "rgba(0, 128, 255, 0.3)"
-                    : "rgba(0, 255, 0, 0.2)"
-                }
-                stroke={selectedRoom === index ? "blue" : "green"}
+                fill="rgba(0, 128, 255, 0.3)" // 高亮显示
+                stroke="blue"
                 strokeWidth={2}
-                onClick={() => handleRoomClick(index)}
-                onTap={() => handleRoomClick(index)}
               />
-              {/* 显示房间标签（当房间未选中且有信息时） */}
-              {selectedRoom !== index &&
-                room.metadata &&
-                (room.metadata.name || room.metadata.id) && (
-                  <>
-                    <Rect
-                      x={getInfoBoxPosition(room).x - 5}
-                      y={getInfoBoxPosition(room).y - 5}
-                      width={120}
-                      height={24}
-                      fill="white"
-                      cornerRadius={5}
-                      shadowBlur={5}
-                      shadowOffset={{ x: 2, y: 2 }}
-                      shadowOpacity={0.3}
-                    />
-                    <Text
-                      x={getInfoBoxPosition(room).x}
-                      y={getInfoBoxPosition(room).y}
-                      text={`${room.metadata.name || "Unnamed"} (${
-                        room.metadata.id || "No ID"
-                      })`}
-                      fontSize={12}
-                      fill="black"
-                      fontStyle="bold"
-                    />
-                  </>
-                )}
+              <Rect
+                x={getInfoBoxPosition(roomToShow).x * scaleFactor - 5}
+                y={getInfoBoxPosition(roomToShow).y * scaleFactor - 5}
+                width={120}
+                height={24}
+                fill="white"
+                cornerRadius={5}
+                shadowBlur={5}
+                shadowOffset={{ x: 2, y: 2 }}
+                shadowOpacity={0.3}
+              />
+              <Text
+                x={getInfoBoxPosition(roomToShow).x * scaleFactor}
+                y={getInfoBoxPosition(roomToShow).y * scaleFactor}
+                text={`${roomToShow.metadata.name || "Unnamed"} (${
+                  roomToShow.metadata.id || "No ID"
+                })`}
+                fontSize={12}
+                fill="black"
+                fontStyle="bold"
+              />
             </React.Fragment>
-          ))}
+          )}
         </Layer>
       </Stage>
 
-      {/* 信息框：显示在选中房间的右侧 */}
-      {selectedRoom !== null && rooms[selectedRoom] && (
+      {selectedRoom !== null && rooms[selectedRoom] && !refineMode && (
         <div
           style={{
             position: "absolute",

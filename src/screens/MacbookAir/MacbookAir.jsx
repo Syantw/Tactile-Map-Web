@@ -1,5 +1,4 @@
 import React, { useRef, useState, useEffect } from "react";
-import { Indicators } from "../../components/Indicators";
 import { MenubarAndContent } from "../../components/Menubar_1/MenubarAndContent";
 import { Switch } from "../../components/Switch";
 import DrawingCanvas from "../../components/DrawingCanvas/DrawingCanvas";
@@ -9,11 +8,10 @@ import FloorMap from "../../components/FloorMap/FloorMap";
 import TrimSelection from "../../components/Trim/Trim";
 import { ViewSelection } from "../../components/ViewSelection/ViewSelection";
 import { LabelSelection } from "../../components/LabelSelection/LabelSelection";
-import { Form, Button } from "react-bootstrap";
+
 import "./style.css";
 
 export const MacbookAir = () => {
-  const [computerActive, setComputerActive] = useState(false);
   const [drawingMode, setDrawingMode] = useState(null);
   const [selectedModes, setSelectedModes] = useState([]);
   const [computeIntersections, setComputeIntersections] = useState(false);
@@ -30,6 +28,8 @@ export const MacbookAir = () => {
   const [highlightedLocation, setHighlightedLocation] = useState(null);
   const [isPicking, setIsPicking] = useState(false);
   const [rooms, setRooms] = useState([]);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [refineMode, setRefineMode] = useState(false);
 
   useEffect(() => {
     fetch("/space_scan.json")
@@ -85,6 +85,12 @@ export const MacbookAir = () => {
     console.log("Room formed in MacbookAir:", { points });
   };
 
+  const handleBackToSegment = () => {
+    setRefineMode(false);
+    setSelectedRoom(null);
+    console.log("Back to segment mode");
+  };
+
   return (
     <div className="macbook-air">
       <div className="overlap">
@@ -125,6 +131,9 @@ export const MacbookAir = () => {
                   detectRooms={detectRooms}
                   setRooms={setRooms}
                   rooms={rooms}
+                  selectedRoom={selectedRoom}
+                  setSelectedRoom={setSelectedRoom} // 添加 setSelectedRoom
+                  refineMode={refineMode}
                 />
               </>
             ) : (
@@ -140,52 +149,70 @@ export const MacbookAir = () => {
             <div className="text-wrapper-5">Annotator</div>
 
             <div className="annotator_content">
-              <ViewSelection
-                initialFileName="myhouse.JSON"
-                setMapData={setMapData}
-                onViewChange={handleViewChange}
-              />
+              {!refineMode ? (
+                <>
+                  <ViewSelection
+                    initialFileName="myhouse.JSON"
+                    setMapData={setMapData}
+                    onViewChange={handleViewChange}
+                  />
 
-              <TrimSelection
-                onTrim={handleTrim}
-                mapData={mapData}
-                setMapData={setMapData}
-              />
+                  <TrimSelection
+                    onTrim={handleTrim}
+                    mapData={mapData}
+                    setMapData={setMapData}
+                  />
 
-              <Segment_Section
-                setDrawingMode={setDrawingMode}
-                drawingMode={drawingMode}
-                selectedModes={selectedModes}
-                handleModeChange={handleModeChange}
-                handleComputeIntersections={handleComputeIntersections}
-                walls={walls}
-                showGrid={viewOptions.includes("Grid View")}
-                setIsPicking={setIsPicking}
-                selectedWalls={selectedWalls}
-                setSelectedWalls={setSelectedWalls}
-                detectRooms={detectRooms}
-              />
-              <LabelSelection
-                name={name}
-                setName={setName}
-                id={id}
-                setId={setId}
-                entrance={entrance}
-                setEntrance={setEntrance}
-                locations={locations}
-                setLocations={setLocations}
-                tempLocation={tempLocation}
-                setTempLocation={setTempLocation}
-                onFileUpload={handleFileUpload}
-                setIsPicking={setIsPicking}
-              />
+                  <Segment_Section
+                    setDrawingMode={setDrawingMode}
+                    drawingMode={drawingMode}
+                    selectedModes={selectedModes}
+                    handleModeChange={handleModeChange}
+                    handleComputeIntersections={handleComputeIntersections}
+                    walls={walls}
+                    showGrid={viewOptions.includes("Grid View")}
+                    setIsPicking={setIsPicking}
+                    selectedWalls={selectedWalls}
+                    setSelectedWalls={setSelectedWalls}
+                    detectRooms={detectRooms}
+                    rooms={rooms}
+                    selectedRoom={selectedRoom}
+                    setSelectedRoom={setSelectedRoom}
+                    setRefineMode={setRefineMode}
+                  />
+                </>
+              ) : (
+                <>
+                  <LabelSelection
+                    name={name}
+                    setName={setName}
+                    id={id}
+                    setId={setId}
+                    entrance={entrance}
+                    setEntrance={setEntrance}
+                    locations={locations}
+                    setLocations={setLocations}
+                    tempLocation={tempLocation}
+                    setTempLocation={setTempLocation}
+                    onFileUpload={handleFileUpload}
+                    setIsPicking={setIsPicking}
+                  />
 
-              <CustomButton
-                onClick={() => alert("submit")}
-                style={{ width: "85%" }}
-              >
-                Submit
-              </CustomButton>
+                  <CustomButton
+                    onClick={() => alert("submit")}
+                    style={{ width: "85%" }}
+                  >
+                    Submit
+                  </CustomButton>
+
+                  <CustomButton
+                    onClick={handleBackToSegment}
+                    style={{ width: "85%", marginTop: "10px" }}
+                  >
+                    Back to Segment
+                  </CustomButton>
+                </>
+              )}
             </div>
           </div>
         </div>
