@@ -675,6 +675,39 @@ const DrawingCanvas = ({
     return null;
   };
 
+  const getLineIntersection = (p1, p2, p3, p4) => {
+    const a1 = p2.y - p1.y;
+    const b1 = p1.x - p2.x;
+    const c1 = a1 * p1.x + b1 * p1.y;
+
+    const a2 = p4.y - p3.y;
+    const b2 = p3.x - p4.x;
+    const c2 = a2 * p3.x + b2 * p3.y;
+
+    const determinant = a1 * b2 - a2 * b1;
+    if (determinant === 0) {
+      return null; // 线段平行，无交点
+    }
+
+    const x = (b2 * c1 - b1 * c2) / determinant;
+    const y = (a1 * c2 - a2 * c1) / determinant;
+
+    // 检查交点是否在两个线段的范围内
+    if (
+      Math.min(p1.x, p2.x) <= x &&
+      x <= Math.max(p1.x, p2.x) &&
+      Math.min(p1.y, p2.y) <= y &&
+      y <= Math.max(p1.y, p2.y) &&
+      Math.min(p3.x, p4.x) <= x &&
+      x <= Math.max(p3.x, p4.x) &&
+      Math.min(p3.y, p4.y) <= y &&
+      y <= Math.max(p3.y, p4.y)
+    ) {
+      return { x, y };
+    }
+    return null;
+  };
+
   const generateWallsFromIntersections = (intersections) => {
     return intersections.map((intersection, index) => ({
       id: index + 1,
