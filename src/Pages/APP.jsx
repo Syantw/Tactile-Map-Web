@@ -1,17 +1,17 @@
 // MacbookAir.jsx (minimal changes)
 import React, { useRef, useState, useEffect } from "react";
-import { MenubarAndContent } from "../../components/Menubar_1/MenubarAndContent";
-import { Switch } from "../../components/Switch";
-import DrawingCanvas from "../../components/DrawingCanvas/DrawingCanvas";
-import Segment_Section from "../../components/Segement_Section/Segment_Section";
-import CustomButton from "../../components/CustomizedButton/CustomizedButton";
-import FloorMap from "../../components/FloorMap/FloorMap";
-import TrimSelection from "../../components/Trim/Trim";
-import { ViewSelection } from "../../components/ViewSelection/ViewSelection";
-import { LabelSelection } from "../../components/LabelSelection/LabelSelection";
+import { MenubarAndContent } from "../components/Menubar_1/MenubarAndContent";
+import { Switch } from "../components/Switch";
+import DrawingCanvas from "../components/DrawingCanvas/DrawingCanvas";
+import Segment_Section from "../components/Segement_Section/Segment_Section";
+import CustomButton from "../components/CustomizedButton/CustomizedButton";
+import FloorMap from "../components/FloorMap/FloorMap";
+import TrimSelection from "../components/Trim/Trim";
+import { ViewSelection } from "../components/ViewSelection/ViewSelection";
+import { LabelSelection } from "../components/LabelSelection/LabelSelection";
 import "./style.css";
 
-export const MacbookAir = () => {
+export const APP = () => {
   const [drawingMode, setDrawingMode] = useState(null);
   const [selectedModes, setSelectedModes] = useState([]);
   const [computeIntersections, setComputeIntersections] = useState(false);
@@ -285,4 +285,4 @@ export const MacbookAir = () => {
   );
 };
 
-export default MacbookAir;
+export default APP;

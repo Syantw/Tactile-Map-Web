@@ -3,7 +3,7 @@ import { TabItem } from "../TabItem";
 import "./style.css";
 
 export const TabsAndContent = ({
-  property1, // "auto" 或 "manual"
+  property1, // "auto" or "manual"
   onTabChange,
 }) => {
   return (

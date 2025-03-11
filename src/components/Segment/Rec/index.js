@@ -1,1 +1,0 @@
-export { Rec } from "./Rec";

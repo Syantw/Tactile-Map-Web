@@ -1,4 +1,4 @@
-// ComputerButton.jsx
+// Used to computer Segment #Line intersection
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";

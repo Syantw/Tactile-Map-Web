@@ -6,7 +6,7 @@
   position: relative;
 }
 
-/* 重用 RadioGroup 的样式，确保一致性 */
+/* Reuse RadioGroup styles to ensure consistency */
 .radio-group {
   height: 18px;
   position: relative;
@@ -56,7 +56,7 @@
 
 .radio-group .img {
   height: 5px;
-  left: 5px; /* 修正位置，避免负值偏移 */
+  left: 5px; /* modified position */
   position: absolute;
   top: 5px;
   width: 7px;

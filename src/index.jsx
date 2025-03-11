@@ -2,10 +2,10 @@ import "../global.css";
 import "../styleguide.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { MacbookAir } from "./screens/MacbookAir";
+import APP from "./Pages/APP";
 
 createRoot(document.getElementById("app")).render(
   <StrictMode>
-    <MacbookAir />
+    <APP />
   </StrictMode>
 );

@@ -4,36 +4,36 @@
   gap: 8px;
   position: relative;
   cursor: pointer;
-  transition: background 0.3s ease-in-out;
+  transition: background 0.3s ease-in-out; /* Smooth background transition */
 }
 
-/* 外部的滑块背景 */
+/* Slider background */
 .switch .toggle {
   background-color: var(--slate-200);
   border-radius: 50px;
   height: 24px;
   width: 44px;
   position: relative;
-  transition: background 0.3s ease-in-out;
+  transition: background 0.3s ease-in-out; /* Background color fades nicely */
 }
 
-/* 圆形滑块 */
+/* The little round slider */
 .switch .ellipse-2 {
   background-color: #ffffff;
   border-radius: 50%;
   height: 20px;
   width: 20px;
-  position: absolute; /* 关键！让滑块相对 toggle 移动 */
+  position: absolute; /* Lets it slide inside toggle */
   top: 2px;
-  left: 2px; /* 关闭状态时在左侧 */
-  transition: left 0.3s ease-in-out;
+  left: 2px; /* Off state - sits on the left */
+  transition: left 0.3s ease-in-out; /* Smooth slide animation */
 }
 
-/* ✅ 选中状态 */
+/* When it's turned on */
 .switch.on .toggle {
-  background-color: #3274f6;
+  background-color: #3274f6; /* Blue background when active */
 }
 
 .switch.on .ellipse-2 {
-  left: 22px; /* 让滑块向右移动 */
+  left: 22px; /* Slides to the right when on */
 }

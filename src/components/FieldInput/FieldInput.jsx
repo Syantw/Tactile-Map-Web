@@ -19,7 +19,7 @@ export const InputField = ({
       <Form.Control
         type={type}
         value={value}
-        onChange={(e) => onChange(e.target.value)} // 正确传递 value
+        onChange={(e) => onChange(e.target.value)} // Communicate value properly
         placeholder={placeholder}
         disabled={disabled}
         onBlur={onBlur}

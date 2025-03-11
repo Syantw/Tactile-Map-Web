@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { Stage, Layer, Line, Rect, Circle, Shape, Text } from "react-konva";
 import simplify from "simplify-js";
 
+// Main component for the drawing canvas
 const DrawingCanvas = ({
   drawingMode,
   setDrawingMode,
@@ -27,18 +28,19 @@ const DrawingCanvas = ({
   const [dimensions, setDimensions] = useState({ width: 600, height: 800 });
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
-  const drawingsRef = useRef([]); // Store all drawn shapes (only lines)
-  const [tempDrawing, setTempDrawing] = useState(null); // Store temporary drawing
+  const drawingsRef = useRef([]); // Holds all drawn lines and shapes
+  const [tempDrawing, setTempDrawing] = useState(null); // Tracks the current drawing in progress
   const [selectedShapeIndex, setSelectedShapeIndex] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [intersections, setIntersections] = useState([]);
-  const [rooms, setLocalRooms] = useState(parentRooms || []); // Room list with metadata
-  const [isEditingRoomInfo, setIsEditingRoomInfo] = useState(false); // Control info box edit state
-  const [editingRoomInfo, setEditingRoomInfo] = useState({ name: "", id: "" }); // Temporary edit info
+  const [rooms, setLocalRooms] = useState(parentRooms || []); // Local room state synced with parent
+  const [isEditingRoomInfo, setIsEditingRoomInfo] = useState(false); // Toggles room info editing
+  const [editingRoomInfo, setEditingRoomInfo] = useState({ name: "", id: "" }); // Temp storage for room edits
   const [error, setError] = useState(null);
-  const [stageOffset, setStageOffset] = useState({ x: 0, y: 0 }); // For centering room
+  const [stageOffset, setStageOffset] = useState({ x: 0, y: 0 }); // Centers the stage for refine mode
 
+  // Adjust canvas size based on container
   useEffect(() => {
     const updateDimensions = () => {
       if (containerRef.current) {
@@ -56,6 +58,7 @@ const DrawingCanvas = ({
     return () => window.removeEventListener("resize", updateDimensions);
   }, []);
 
+  // Handle intersections and deletions
   useEffect(() => {
     if (computeIntersections) {
       console.log("Computing intersections...");
@@ -106,6 +109,7 @@ const DrawingCanvas = ({
     selectedRoom,
   ]);
 
+  // Sync rooms and center stage in refine mode
   useEffect(() => {
     setLocalRooms(parentRooms || []);
     if (refineMode && selectedRoom !== null && rooms[selectedRoom]) {
@@ -124,6 +128,7 @@ const DrawingCanvas = ({
     }
   }, [parentRooms, refineMode, selectedRoom]);
 
+  // Snap coordinates to grid if enabled
   const snapToGrid = (x, y) => {
     if (!showGrid) return { x, y };
     const gridSize = 50;
@@ -132,6 +137,7 @@ const DrawingCanvas = ({
     return { x: snappedX, y: snappedY };
   };
 
+  // Align new rectangle to nearby ones
   const snapToNearbyRectangle = (currentShape) => {
     const threshold = 10;
     const { start, end } = currentShape;
@@ -215,7 +221,7 @@ const DrawingCanvas = ({
           name: rooms[roomIndex]?.metadata?.name || "",
           id: rooms[roomIndex]?.metadata?.id || "",
         });
-        console.log("Selected room metadata:", rooms[roomIndex]?.metadata); // Debug log
+        console.log("Selected room metadata:", rooms[roomIndex]?.metadata);
         return;
       }
     }
@@ -384,6 +390,7 @@ const DrawingCanvas = ({
     setTempDrawing(null);
   };
 
+  // Remove the selected shape from the canvas
   const deleteSelectedShape = () => {
     if (selectedShapeIndex !== null) {
       drawingsRef.current.splice(selectedShapeIndex, 1);
@@ -395,6 +402,7 @@ const DrawingCanvas = ({
     }
   };
 
+  // Find and set intersections between shapes
   const computeAndDrawIntersections = () => {
     console.log("🔬 Analyzing intersections...");
     console.log("📌 Total drawn shapes:", drawingsRef.current.length);
@@ -676,6 +684,7 @@ const DrawingCanvas = ({
     return null;
   };
 
+  // Calculate intersection point of two lines
   const getLineIntersection = (p1, p2, p3, p4) => {
     const a1 = p2.y - p1.y;
     const b1 = p1.x - p2.x;
@@ -747,7 +756,7 @@ const DrawingCanvas = ({
           category: rooms[index]?.metadata?.category || [],
         },
       };
-      console.log("Saved room info:", newRooms[index]); // Debug log
+      console.log("Saved room info:", newRooms[index]);
       return newRooms;
     });
     setLocalRooms((prev) => {
@@ -791,6 +800,7 @@ const DrawingCanvas = ({
 
   if (error) return <div>Error in DrawingCanvas: {error.message}</div>;
 
+  // Render the canvas and UI elements
   return (
     <div
       ref={containerRef}
@@ -836,7 +846,7 @@ const DrawingCanvas = ({
                   x={Math.min(draw.start.x, draw.end.x)}
                   y={Math.min(draw.start.y, draw.end.y)}
                   width={Math.abs(draw.end.x - draw.start.x)}
-                  height={Math.abs(draw.end.y - draw.end.y)}
+                  height={Math.abs(draw.end.y - draw.start.y)}
                   stroke={index === selectedShapeIndex ? "blue" : "red"}
                   strokeWidth={2}
                 />

@@ -26,7 +26,6 @@
   cursor: pointer;
 }
 
-/* h1 样式可能需要根据全局定义调整 */
 .h1 {
   display: flex;
   gap: 10px;

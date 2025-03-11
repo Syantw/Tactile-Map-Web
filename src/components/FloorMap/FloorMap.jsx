@@ -3,6 +3,7 @@ import { Stage, Layer, Line, Rect, Text } from "react-konva";
 import hull from "hull.js";
 import simplify from "simplify-js";
 
+// Main component for rendering and editing floor maps
 const FloorMap = ({
   mapData,
   trimMode,
@@ -18,11 +19,12 @@ const FloorMap = ({
   const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 600, height: 800 });
   const [zoom, setZoom] = useState(1);
-  const [drawingPoints, setDrawingPoints] = useState([]);
+  const [drawingPoints, setDrawingPoints] = useState([]); // Points for active drawing
   const [isDrawing, setIsDrawing] = useState(false);
-  const [activeInfoBox, setActiveInfoBox] = useState(null);
-  const [stagePosition, setStagePosition] = useState({ x: 0, y: 0 });
+  const [activeInfoBox, setActiveInfoBox] = useState(null); // Currently selected location info
+  const [stagePosition, setStagePosition] = useState({ x: 0, y: 0 }); // Tracks stage drag position
 
+  // Sync canvas size with container
   useEffect(() => {
     const updateDimensions = () => {
       if (containerRef.current) {
@@ -41,6 +43,7 @@ const FloorMap = ({
     return () => window.removeEventListener("resize", updateDimensions);
   }, []);
 
+  // Log prop changes for debugging
   useEffect(() => {
     console.log(
       "FloorMap props updated - locations:",
@@ -56,6 +59,7 @@ const FloorMap = ({
     );
   }, [locations, activeInfoBox, isPicking, showGrid, showWall]);
 
+  // Handle zoom with mouse wheel
   const handleWheel = (e) => {
     e.evt.preventDefault();
     const scaleBy = 1.1;
@@ -67,11 +71,13 @@ const FloorMap = ({
     );
   };
 
+  // Update stage position after dragging
   const handleDragEnd = (e) => {
     const stage = e.target;
     setStagePosition({ x: stage.x(), y: stage.y() });
   };
 
+  // Start drawing a line in pencil or pen mode
   const handleMouseDown = (e) => {
     if (!["pencil", "pen"].includes(trimMode)) return;
     try {
@@ -86,6 +92,7 @@ const FloorMap = ({
     }
   };
 
+  // Update drawing points as mouse moves
   const handleMouseMove = (e) => {
     if (!["pencil", "pen"].includes(trimMode) || !isDrawing) return;
     try {
@@ -102,6 +109,7 @@ const FloorMap = ({
     }
   };
 
+  // Finish drawing and split floor layer
   const handleMouseUp = (e) => {
     if (!["pencil", "pen"].includes(trimMode) || drawingPoints.length < 4)
       return;
@@ -160,26 +168,24 @@ const FloorMap = ({
     }
   };
 
+  // Handle clicks for adding or selecting locations
   const handleClick = (e) => {
     const stage = e.target.getStage();
     const pos = stage.getPointerPosition();
     const snappedPos = snapToGrid(pos, showGrid);
 
-    // 调整点击坐标以考虑 Stage 的拖动和缩放
     const adjustedX = (snappedPos.x - stagePosition.x) / zoom;
     const adjustedY = (snappedPos.y - stagePosition.y) / zoom;
 
     console.log("Adjusted click position:", { adjustedX, adjustedY });
     console.log("Current locations:", locations);
 
-    // 标记阶段：isPicking 为 true 时，点击任意位置添加点位
     if (isPicking && !trimMode) {
       handleAddLocation({ x: adjustedX, y: adjustedY });
       console.log("Picking location:", { x: adjustedX, y: adjustedY });
       return;
     }
 
-    // 查看阶段：isPicking 为 false 时，检测是否点击已有点位
     if (!isPicking) {
       const clickedLocation = locations.find((loc) => {
         const locX = loc.x;
@@ -223,6 +229,7 @@ const FloorMap = ({
   const canvasHeight = dimensions.height;
   const pixelSize = mapData.pixelSize;
 
+  // Calculate bounds and scaling for map layers
   const getGlobalBounds = (layers) => {
     let allX = [];
     let allY = [];
@@ -241,6 +248,7 @@ const FloorMap = ({
     return { minX, maxX, minY, maxY, scale, dataWidth, dataHeight };
   };
 
+  // Convert pixel data to renderable points
   const getPoints = (pixels, isFloor, scale, minX, minY) => {
     if (!pixels || pixels.length < 4) {
       console.warn("No valid pixels for rendering");
@@ -288,6 +296,7 @@ const FloorMap = ({
     }
   };
 
+  // Snap position to grid if enabled
   const snapToGrid = (pos, enableSnap) => {
     if (!enableSnap) return pos;
     const gridSize = 50;
@@ -296,6 +305,7 @@ const FloorMap = ({
     return { x: snappedX, y: snappedY };
   };
 
+  // Draw the grid lines
   const renderGrid = () => {
     const gridSize = 50;
     const lines = [];
@@ -333,6 +343,7 @@ const FloorMap = ({
   const { minX, maxX, minY, maxY, scale, dataWidth, dataHeight } =
     getGlobalBounds(mapData.layers);
 
+  // Render the floor map with layers and UI
   return (
     <div
       ref={containerRef}
@@ -344,7 +355,6 @@ const FloorMap = ({
         zIndex: isPicking ? 2 : 0,
       }}
     >
-      {/* 固定网格层 */}
       {showGrid && (
         <Stage
           width={canvasWidth}
@@ -361,7 +371,6 @@ const FloorMap = ({
         </Stage>
       )}
 
-      {/* 主地图层 */}
       <Stage
         width={canvasWidth}
         height={canvasHeight}

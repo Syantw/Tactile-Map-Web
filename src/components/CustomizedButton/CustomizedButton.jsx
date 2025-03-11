@@ -8,6 +8,7 @@ const CustomButton = ({
   style = {},
   ...props
 }) => {
+  // Default button styles
   const defaultStyle = {
     display: "flex",
     alignItems: "center",
@@ -26,18 +27,19 @@ const CustomButton = ({
     transition: "background 0.3s ease-in-out",
   };
 
+  // Merge default styles with user-provided styles
   const mergedStyle = { ...defaultStyle, ...style };
 
   return (
     <button
-      className={`btn ${className}`}
-      style={mergedStyle}
-      onMouseOver={(e) => (e.target.style.backgroundColor = "#265ecf")}
+      className={`btn ${className}`} // Apply Bootstrap button styles
+      style={mergedStyle} // Apply the computed button styles
+      onMouseOver={(e) => (e.target.style.backgroundColor = "#265ecf")} // Change background color on hover
       onMouseOut={(e) =>
         (e.target.style.backgroundColor = defaultStyle.backgroundColor)
-      }
+      } // Reset background color when mouse leaves
       onClick={onClick}
-      {...props}
+      {...props} // Spread additional props onto the button element
     >
       {children}
     </button>

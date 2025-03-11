@@ -3,7 +3,7 @@ import { MenubarItem } from "../MenubarItem";
 import "./style.css";
 
 export const Menubar = () => {
-  const [selectedItem, setSelectedItem] = useState("File"); // 选中的菜单项
+  const [selectedItem, setSelectedItem] = useState("File"); // Selected menu item
 
   return (
     <div className="menubar">

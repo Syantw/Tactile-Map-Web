@@ -5,6 +5,6 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
-    include: ["leaflet"], // ✅ Force Vite to pre-bundle Leaflet
+    include: ["leaflet"], //Force Vite to pre-bundle Leaflet
   },
 });

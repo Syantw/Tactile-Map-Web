@@ -6,22 +6,22 @@ import simplify from "simplify-js";
 import hull from "hull.js";
 import "./styles.css";
 
+// Component for handling map trimming options
 const TrimSelection = ({ onTrim, mapData, setMapData }) => {
-  const [trimMode, setTrimMode] = useState("auto");
-  const [manualTool, setManualTool] = useState(null);
+  const [trimMode, setTrimMode] = useState("auto"); // Default to auto trim
+  const [manualTool, setManualTool] = useState(null); // Tracks selected manual tool
 
+  // Auto-trim floors using hull and simplify
   const handleAutoTrim = () => {
     const trimmedData = { ...mapData };
     trimmedData.layers = trimmedData.layers.map((layer) => {
       if (layer.type !== "floor") return layer;
 
-      // 提取所有点
       const points = [];
       for (let i = 0; i < layer.pixels.length; i += 2) {
         points.push({ x: layer.pixels[i], y: layer.pixels[i + 1] });
       }
 
-      // 使用 hull 获取外轮廓
       const hullPoints = hull(
         points.map((p) => [p.x, p.y]),
         50
@@ -44,11 +44,13 @@ const TrimSelection = ({ onTrim, mapData, setMapData }) => {
     setMapData(trimmedData);
   };
 
+  // Toggle manual tool selection
   const handleToolSelect = (tool) => {
     setManualTool(manualTool === tool ? null : tool);
     onTrim("manual", manualTool === tool ? null : tool);
   };
 
+  // Render the trim UI
   return (
     <div className="trimSelection">
       <div className="h1">Trim</div>
