@@ -1,31 +1,12 @@
-.computer-button {
-  align-items: center;
-  border-radius: 8px;
-  gap: 7px;
-  height: 29px;
-  justify-content: center;
-  padding: 10px 20px;
-  position: relative;
-  width: 70%;
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
-.computer-button .text-wrapper {
-  color: #ffffff;
-  font-family: "Poppins-SemiBold", Helvetica;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0;
-  line-height: normal;
-  margin-bottom: -3.5px;
-  margin-top: -5.5px;
-  position: relative;
-  width: fit-content;
-}
-
-.computer-button.action {
-  background-color: #3274f6;
-}
-
-.computer-button.default {
-  background-color: #82a7f1;
+.btn.active {
+  background-color: #1e4db6;
 }

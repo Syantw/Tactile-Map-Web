@@ -8,7 +8,6 @@ const CustomButton = ({
   style = {},
   ...props
 }) => {
-  // 默认样式
   const defaultStyle = {
     display: "flex",
     alignItems: "center",
@@ -20,13 +19,13 @@ const CustomButton = ({
     padding: "10px 20px",
     width: "100%",
     color: "white",
+    fontSize: "16px",
     fontWeight: "bold",
     border: "none",
     cursor: "pointer",
     transition: "background 0.3s ease-in-out",
   };
 
-  // 合并默认样式和用户传入的 style
   const mergedStyle = { ...defaultStyle, ...style };
 
   return (

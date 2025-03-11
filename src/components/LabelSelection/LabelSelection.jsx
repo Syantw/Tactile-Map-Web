@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+// LabelSelection.jsx
+import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import { Dropdown } from "../Dropdown/DropDown";
 import { InputField } from "../FieldInput/FieldInput";
 import { LocationPicker } from "../LocationPicker/LocationPicker";
@@ -20,15 +22,37 @@ export const LabelSelection = ({
   setTempLocation,
   onFileUpload,
   setIsPicking,
+  selectedRoom,
+  setRooms,
+  rooms,
+  customLabels,
+  addCustomLabel,
+  facilityLabels, // Receive facility labels from MacbookAir
+  addFacilityLabel, // Function to add new facility labels
 }) => {
   const [selectedCategory, setSelectedCategory] = useState([]);
   const [description, setDescription] = useState("");
-  const [locationName, setLocationName] = useState(""); // 新增：存储 locationName
+  const [locationName, setLocationName] = useState("");
+  const [customLabel, setCustomLabel] = useState("");
+  const [showCustomInput, setShowCustomInput] = useState(false);
+
+  // Sync selectedCategory with rooms when selectedRoom or rooms changes
+  useEffect(() => {
+    if (selectedRoom !== null && rooms[selectedRoom]) {
+      setSelectedCategory(rooms[selectedRoom].metadata.category || []);
+      setName(rooms[selectedRoom].metadata.name || "");
+      setId(rooms[selectedRoom].metadata.id || "");
+    } else {
+      setSelectedCategory([]);
+      setName("");
+      setId("");
+    }
+  }, [selectedRoom, rooms]);
 
   const handleAddLocation = (location) => {
     const updatedLocation = {
       ...location,
-      name: locationName || `Point ${locations.length + 1}`, // 使用 locationName
+      name: locationName || `Point ${locations.length + 1}`,
     };
     setTempLocation(updatedLocation);
     console.log("Temp location set in LabelSelection:", updatedLocation);
@@ -58,14 +82,85 @@ export const LabelSelection = ({
     );
   };
 
+  const handleSaveRoomLabel = () => {
+    if (selectedRoom !== null && rooms[selectedRoom]) {
+      const updatedRoom = {
+        ...rooms[selectedRoom],
+        metadata: {
+          ...rooms[selectedRoom].metadata,
+          name,
+          id,
+          category: selectedCategory,
+        },
+      };
+      setRooms((prev) => {
+        const newRooms = [...prev];
+        newRooms[selectedRoom] = updatedRoom;
+        console.log("Saving room label:", updatedRoom);
+        return newRooms;
+      });
+    }
+  };
+
+  const handleCustomLabelConfirm = () => {
+    if (customLabel && !selectedCategory.includes(customLabel)) {
+      setSelectedCategory((prev) => [...prev, customLabel]);
+      if (addCustomLabel && typeof addCustomLabel === "function") {
+        addCustomLabel(customLabel);
+      }
+      handleSaveRoomLabel();
+    }
+    setShowCustomInput(false);
+    setCustomLabel("");
+  };
+
   return (
     <div className="labelSelection">
       <div className="h1">Label</div>
       <Dropdown
         className="dropdown"
-        options={["2D Layout - Room", "3D View", "Map Overview"]}
+        options={[
+          "2D Layout - Room",
+          "2D Layout - Office",
+          "2D Layout - Entrance",
+          "2D Layout - Stair",
+          "2D Layout - Elevator",
+          "2D Layout - Garden",
+          "2D Layout - Restroom",
+          "Add More",
+          ...customLabels,
+        ]}
         defaultValue="2D Layout - Room"
+        setShowCustomInput={setShowCustomInput}
+        setCustomLabel={setCustomLabel}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={(newCategory) => {
+          setSelectedCategory(newCategory);
+          handleSaveRoomLabel();
+        }}
       />
+      {showCustomInput && (
+        <InputField
+          label="Custom Label"
+          value={customLabel}
+          onChange={(value) => setCustomLabel(value)}
+          placeholder="Enter custom label"
+          type="text"
+          disabled={false}
+          style={{
+            color: "#505050",
+            fontFamily: "'Poppins', Helvetica",
+            fontSize: "12px",
+            width: "90%",
+          }}
+          onBlur={handleCustomLabelConfirm}
+          onKeyPress={(e) => {
+            if (e.key === "Enter") {
+              handleCustomLabelConfirm();
+            }
+          }}
+        />
+      )}
       <div className="entrance">
         <div className="text-wrapper-10">Entrance</div>
         <div className="entrance_selector">
@@ -73,13 +168,14 @@ export const LabelSelection = ({
             value={entrance}
             onChange={setEntrance}
             placeholder="Pick Entrance"
+            style={{ width: "100%" }}
             type="text"
             disabled={false}
           />
           <div className="entrance_list">
-            <p className="entrance-location">Entrance 1 - Location ></p>
-            <p className="entrance-location">Entrance 3 - Location ></p>
-            <p className="entrance-location">Entrance 2 - Location ></p>
+            <p className="entrance-location">Entrance 1 - Location </p>
+            <p className="entrance-location">Entrance 3 - Location </p>
+            <p className="entrance-location">Entrance 2 - Location </p>
           </div>
         </div>
       </div>
@@ -122,16 +218,10 @@ export const LabelSelection = ({
         </div>
         <div className="facilities-list">
           <SelectableButtons
-            labels={[
-              "Exhibition",
-              "Elevator",
-              "Service",
-              "Restrooms",
-              "Landmarks",
-              "Obstacles",
-            ]}
+            labels={[...facilityLabels, "+"]} // Include all facility labels and the "+" button
             selected={selectedCategory}
             setSelected={setSelectedCategory}
+            addFacilityLabel={addFacilityLabel} // Pass the function to add new labels
           />
         </div>
 
@@ -149,6 +239,7 @@ export const LabelSelection = ({
         <CustomButton
           style={{ width: "100%", height: "29px", fontSize: "12px" }}
           onClick={handleSelect}
+          disabled={selectedRoom === null && !tempLocation}
         >
           Select
         </CustomButton>
@@ -159,6 +250,29 @@ export const LabelSelection = ({
       </div>
     </div>
   );
+};
+
+// Define propTypes after the component declaration
+LabelSelection.propTypes = {
+  name: PropTypes.string,
+  setName: PropTypes.func,
+  id: PropTypes.string,
+  setId: PropTypes.func,
+  entrance: PropTypes.string,
+  setEntrance: PropTypes.func,
+  locations: PropTypes.array,
+  setLocations: PropTypes.func,
+  tempLocation: PropTypes.object,
+  setTempLocation: PropTypes.func,
+  onFileUpload: PropTypes.func,
+  setIsPicking: PropTypes.func,
+  selectedRoom: PropTypes.number,
+  setRooms: PropTypes.func,
+  rooms: PropTypes.array,
+  customLabels: PropTypes.array,
+  addCustomLabel: PropTypes.func,
+  facilityLabels: PropTypes.array, // Add prop type for facility labels
+  addFacilityLabel: PropTypes.func, // Add prop type for adding facility labels
 };
 
 export default LabelSelection;

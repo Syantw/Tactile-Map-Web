@@ -1,10 +1,11 @@
-/* 单个墙体项 */
-.wall-container {
+/* style.css */
+
+/* Base styles for SelectableItem */
+.selectable-item {
   display: flex;
   align-items: center;
   justify-content: flex-start;
   width: auto;
-  min-width: auto;
   height: auto;
   padding: 5px;
   cursor: pointer;
@@ -12,13 +13,12 @@
   transition: background-color 0.3s ease;
 }
 
-/* 选中状态 - 多选支持 */
-.wall-container.selected {
+/* Selected state */
+.selectable-item.selected {
   background-color: rgba(0, 122, 255, 0.2);
-  border-radius: 4px;
 }
 
-/* 墙体小方块 */
+/* Small square (rectangle-4) for selection indication */
 .rectangle-4 {
   border: 1px solid #afafaf;
   border-radius: 2px;
@@ -27,16 +27,15 @@
   transition: background-color 0.3s ease;
 }
 
-/* 选中时填充蓝色 */
-.wall-container.selected .rectangle-4 {
-  background-color: #007aff;
+/* Selected state for the small square */
+.selectable-item.selected .rectangle-4 {
+  background-color: #007aff; /* Blue fill when selected */
 }
 
-/* 墙体文字 */
-.wall {
-  font-family: Arial, Helvetica, sans-serif;
+/* Text */
+.selectable-text {
+  font-family: "Poppins", Helvetica;
   color: #575757;
-  font-size: 10px;
   font-weight: 400;
   margin-left: 5px;
   white-space: nowrap;

@@ -1,10 +1,18 @@
+// RoomList.jsx
 import React from "react";
-import SelectableItem from "../SelectableItem/SelectableItem"; // 假设路径正确
+import SelectableItem from "../SelectableItem/SelectableItem"; // Ensure the path is correct
+import "./style.css";
 
 const RoomList = ({ rooms, selectedRoom, setSelectedRoom }) => {
   const handleRoomSelect = (index) => {
-    setSelectedRoom(index);
-    console.log("Selected room:", index);
+    // If the room is already selected, deselect it; otherwise, select it
+    if (selectedRoom === index) {
+      setSelectedRoom(null); // Deselect by setting to null
+      console.log("Deselected room:", index);
+    } else {
+      setSelectedRoom(index); // Select the new room
+      console.log("Selected room:", index);
+    }
   };
 
   return (
@@ -25,8 +33,10 @@ const RoomList = ({ rooms, selectedRoom, setSelectedRoom }) => {
             <SelectableItem
               key={index}
               text={`Room ${index + 1}: ${roomText}`}
-              isSelected={selectedRoom === index}
+              isSelected={selectedRoom === index} // Check if the room is selected
               onSelect={() => handleRoomSelect(index)}
+              className="room-container"
+              textClassName="room-text"
             />
           );
         })

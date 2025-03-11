@@ -1,0 +1,26 @@
+/* style.css */
+
+/* Room list container */
+.room-list {
+  display: flex;
+  flex-direction: column; /* Vertical stacking from the left */
+  justify-content: flex-start;
+  gap: 10px; /* Space between items */
+  width: 100%; /* Full width */
+  margin-top: 10px;
+}
+
+/* Room container */
+.room-container {
+  align-items: center;
+  width: 100%;
+  padding: 10px;
+}
+
+/* Room text */
+.room-text {
+  padding-left: 10px;
+  font-size: 14px; /* Larger font size for RoomList */
+  color: #232323; /* Darker color for better readability */
+  opacity: 1; /* Full opacity */
+}

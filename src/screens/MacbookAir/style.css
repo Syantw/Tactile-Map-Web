@@ -139,8 +139,8 @@
 
 .macbook-air .vector-3 {
   height: 1px;
-  margin-bottom: -0.5px;
-  margin-left: -0.5px;
+  margin-bottom: 2px;
+  margin-top: 5px;
   object-fit: cover;
   position: relative;
   width: 434.5px;
@@ -333,7 +333,7 @@
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  width: 90%;
+  width: 100%;
 }
 
 .macbook-air .entrance-input {

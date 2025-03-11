@@ -1,40 +1,45 @@
 import React from "react";
-import { Form } from "react-bootstrap";
 import PropTypes from "prop-types";
-import "./style.css";
+import { Form } from "react-bootstrap";
 
 export const InputField = ({
   label,
   value,
   onChange,
-  placeholder = "",
+  placeholder,
   type = "text",
   disabled = false,
-  className = "",
-  ...rest // 接收额外的 Form.Control 属性
+  style,
+  onBlur,
+  onKeyPress,
 }) => {
   return (
-    <div className={`info-input ${className}`}>
-      <div className="text-wrapper-10">{label}</div>
+    <Form.Group style={style}>
+      {label && <Form.Label>{label}</Form.Label>}
       <Form.Control
         type={type}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => onChange(e.target.value)} // 正确传递 value
         placeholder={placeholder}
         disabled={disabled}
-        className="info-enter"
-        {...rest} // 传递额外属性
+        onBlur={onBlur}
+        onKeyPress={onKeyPress}
+        style={{ fontSize: "12px", height: "35px" }}
       />
-    </div>
+    </Form.Group>
   );
 };
 
 InputField.propTypes = {
-  label: PropTypes.string.isRequired,
-  value: PropTypes.string.isRequired,
-  onChange: PropTypes.func.isRequired,
+  label: PropTypes.string,
+  value: PropTypes.string,
+  onChange: PropTypes.func,
   placeholder: PropTypes.string,
   type: PropTypes.string,
   disabled: PropTypes.bool,
-  className: PropTypes.string,
+  style: PropTypes.object,
+  onBlur: PropTypes.func,
+  onKeyPress: PropTypes.func,
 };
+
+export default InputField;

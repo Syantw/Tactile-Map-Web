@@ -1,3 +1,4 @@
+// MacbookAir.jsx (minimal changes)
 import React, { useRef, useState, useEffect } from "react";
 import { MenubarAndContent } from "../../components/Menubar_1/MenubarAndContent";
 import { Switch } from "../../components/Switch";
@@ -8,7 +9,6 @@ import FloorMap from "../../components/FloorMap/FloorMap";
 import TrimSelection from "../../components/Trim/Trim";
 import { ViewSelection } from "../../components/ViewSelection/ViewSelection";
 import { LabelSelection } from "../../components/LabelSelection/LabelSelection";
-
 import "./style.css";
 
 export const MacbookAir = () => {
@@ -30,8 +30,22 @@ export const MacbookAir = () => {
   const [rooms, setRooms] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [refineMode, setRefineMode] = useState(false);
+  const [customLabels, setCustomLabels] = useState([]);
+  const [facilityLabels, setFacilityLabels] = useState([
+    "Exhibition",
+    "Elevator",
+    "Service",
+    "Restrooms",
+    "Landmarks",
+    "Obstacles",
+  ]); // New state for facility labels
 
   useEffect(() => {
+    const savedLabels = localStorage.getItem("customLabels");
+    if (savedLabels) {
+      setCustomLabels(JSON.parse(savedLabels));
+    }
+
     fetch("/space_scan.json")
       .then((response) => {
         if (!response.ok)
@@ -39,11 +53,19 @@ export const MacbookAir = () => {
         return response.json();
       })
       .then((data) => {
-        console.log("加载的 JSON 数据:", data);
+        console.log("Loaded JSON data:", data);
         setMapData(data);
       })
-      .catch((error) => console.error("加载 JSON 失败:", error));
+      .catch((error) => console.error("Failed to load JSON:", error));
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("customLabels", JSON.stringify(customLabels));
+  }, [customLabels]);
+
+  useEffect(() => {
+    console.log("isPicking updated:", isPicking);
+  }, [isPicking]);
 
   const handleModeChange = (mode) => {
     if (drawingMode !== "line") return;
@@ -81,7 +103,10 @@ export const MacbookAir = () => {
       console.warn("At least 3 points are required to form a room.");
       return;
     }
-    setRooms((prev) => [...prev, { points, metadata: { name: "", id: "" } }]);
+    setRooms((prev) => [
+      ...prev,
+      { points, metadata: { name: "", id: "", category: [] } },
+    ]);
     console.log("Room formed in MacbookAir:", { points });
   };
 
@@ -89,6 +114,19 @@ export const MacbookAir = () => {
     setRefineMode(false);
     setSelectedRoom(null);
     console.log("Back to segment mode");
+  };
+
+  const addCustomLabel = (label) => {
+    if (!customLabels.includes(label)) {
+      setCustomLabels((prev) => [...prev, label]);
+      console.log("Added custom label:", label);
+    }
+  };
+
+  const addFacilityLabel = (label) => {
+    if (label && !facilityLabels.includes(label)) {
+      setFacilityLabels((prev) => [...prev, label]);
+    }
   };
 
   return (
@@ -132,7 +170,7 @@ export const MacbookAir = () => {
                   setRooms={setRooms}
                   rooms={rooms}
                   selectedRoom={selectedRoom}
-                  setSelectedRoom={setSelectedRoom} // 添加 setSelectedRoom
+                  setSelectedRoom={setSelectedRoom}
                   refineMode={refineMode}
                 />
               </>
@@ -180,6 +218,32 @@ export const MacbookAir = () => {
                     setSelectedRoom={setSelectedRoom}
                     setRefineMode={setRefineMode}
                   />
+
+                  <img
+                    className="vector-3"
+                    alt="Vector"
+                    src="https://c.animaapp.com/UTvzRI5U/img/vector-21-6.svg"
+                  />
+
+                  <CustomButton
+                    onClick={() => alert("submit")}
+                    className="export-button"
+                    style={{
+                      width: "90%",
+                      marginTop: "20px",
+                      backgroundColor: "#396DA0",
+                      transition:
+                        "background 0.3s ease-in-out, transform 0.1s ease",
+                    }}
+                    onMouseOver={(e) => {
+                      e.target.style.backgroundColor = "#24588C";
+                    }}
+                    onMouseOut={(e) => {
+                      e.target.style.backgroundColor = "#396DA0";
+                    }}
+                  >
+                    Export
+                  </CustomButton>
                 </>
               ) : (
                 <>
@@ -196,20 +260,20 @@ export const MacbookAir = () => {
                     setTempLocation={setTempLocation}
                     onFileUpload={handleFileUpload}
                     setIsPicking={setIsPicking}
+                    selectedRoom={selectedRoom}
+                    setRooms={setRooms}
+                    rooms={rooms}
+                    customLabels={customLabels}
+                    addCustomLabel={addCustomLabel}
+                    facilityLabels={facilityLabels} // Pass facility labels
+                    addFacilityLabel={addFacilityLabel} // Pass function to add new facility labels
                   />
-
-                  <CustomButton
-                    onClick={() => alert("submit")}
-                    style={{ width: "85%" }}
-                  >
-                    Submit
-                  </CustomButton>
 
                   <CustomButton
                     onClick={handleBackToSegment}
                     style={{ width: "85%", marginTop: "10px" }}
                   >
-                    Back to Segment
+                    Finish
                   </CustomButton>
                 </>
               )}

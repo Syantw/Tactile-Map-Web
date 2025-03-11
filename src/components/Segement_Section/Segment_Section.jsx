@@ -1,3 +1,4 @@
+// Segment_Section.jsx
 import React, { useState, useEffect } from "react";
 import { Line } from "../Segment/Line";
 import { Select } from "../Segment/Select";
@@ -7,7 +8,7 @@ import WallList from "../WallList/WallList";
 import RoomList from "../RoomList/RoomList";
 import CustomButton from "../CustomizedButton/CustomizedButton";
 
-// 新增 Rectangle 组件
+// Rectangle Draw Component
 const Rectangle = ({ className, mingcutePenLine, isSelected, onClick }) => {
   return (
     <div
@@ -19,7 +20,7 @@ const Rectangle = ({ className, mingcutePenLine, isSelected, onClick }) => {
         alt="Mingcute pen line"
         src={mingcutePenLine}
       />
-      <div className="text-wrapper">Rectangle</div>
+      <div className="text-wrapper">Rec</div>
     </div>
   );
 };
@@ -37,9 +38,9 @@ const Segment_Section = ({
   setSelectedWalls,
   detectRooms,
   rooms,
-  selectedRoom,
-  setSelectedRoom,
-  setRefineMode, // 新增 setRefineMode prop
+  selectedRoom, // Keep as single selection
+  setSelectedRoom, // Keep as single selection
+  setRefineMode, // New setRefineMode prop
 }) => {
   const [activeTab, setActiveTab] = useState(null);
 
@@ -99,12 +100,15 @@ const Segment_Section = ({
 
   const handleRefineRoom = () => {
     if (selectedRoom !== null) {
-      setRefineMode(true); // 切换到精修模式
+      setRefineMode(true); // Switch to refine mode
       console.log("Switched to refine mode for room:", selectedRoom);
     } else {
       console.warn("Please select a room to refine.");
     }
   };
+
+  // Check if there are selected intersection points
+  const hasSelectedIntersections = selectedWalls.length > 0;
 
   return (
     <div className="segmentSelection">
@@ -132,27 +136,29 @@ const Segment_Section = ({
       </div>
 
       {activeTab === "line" && (
-        <div className="frame-11">
-          <RadioGroup
-            text="Horizontal"
-            vector="https://c.animaapp.com/UTvzRI5U/img/vector-21-5.svg"
-            selectedOptions={selectedModes}
-            onChange={handleModeChange}
-          />
-          <RadioGroup
-            text="Vertical"
-            vector="https://c.animaapp.com/UTvzRI5U/img/vector-21-5.svg"
-            selectedOptions={selectedModes}
-            onChange={handleModeChange}
-          />
-        </div>
-      )}
+        <>
+          <div className="frame-11">
+            <RadioGroup
+              text="Horizontal"
+              vector="https://c.animaapp.com/UTvzRI5U/img/vector-21-5.svg"
+              selectedOptions={selectedModes}
+              onChange={handleModeChange}
+            />
+            <RadioGroup
+              text="Vertical"
+              vector="https://c.animaapp.com/UTvzRI5U/img/vector-21-5.svg"
+              selectedOptions={selectedModes}
+              onChange={handleModeChange}
+            />
+          </div>
 
-      <ComputerButton
-        className="computer-button-instance"
-        onClick={handleComputeIntersections}
-        Type="Compute"
-      />
+          <ComputerButton
+            className="computer-button-instance"
+            onClick={handleComputeIntersections}
+            Type="Compute"
+          />
+        </>
+      )}
 
       {drawingMode === "line" && (
         <>
@@ -161,17 +167,19 @@ const Segment_Section = ({
             selectedWalls={selectedWalls}
             setSelectedWalls={setSelectedWalls}
           />
-          <CustomButton
-            style={{
-              width: "100%",
-              height: "29px",
-              fontSize: "12px",
-              marginTop: "10px",
-            }}
-            onClick={handleFormRoom}
-          >
-            Form Room
-          </CustomButton>
+          {hasSelectedIntersections && ( // Only show Form Room button if intersections are selected
+            <CustomButton
+              style={{
+                width: "100%",
+                height: "29px",
+                fontSize: "14px",
+                marginTop: "10px",
+              }}
+              onClick={handleFormRoom}
+            >
+              Form Room
+            </CustomButton>
+          )}
         </>
       )}
 
@@ -180,6 +188,8 @@ const Segment_Section = ({
         alt="Vector"
         src="https://c.animaapp.com/UTvzRI5U/img/vector-21-6.svg"
       />
+
+      <div className="h1">Label</div>
 
       <RoomList
         rooms={rooms}
@@ -190,13 +200,13 @@ const Segment_Section = ({
       <CustomButton
         style={{
           width: "100%",
-          height: "29px",
-          fontSize: "12px",
+          height: "37px",
+          fontSize: "14px",
           marginTop: "10px",
         }}
         onClick={handleRefineRoom}
       >
-        Refine Room
+        Label Room
       </CustomButton>
     </div>
   );

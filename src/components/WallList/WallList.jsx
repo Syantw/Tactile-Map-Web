@@ -1,3 +1,4 @@
+// WallList.jsx
 import React, { useState } from "react";
 import "./style.css";
 import SelectableItem from "../SelectableItem/SelectableItem";
@@ -13,7 +14,7 @@ const WallList = ({ walls, setSelectedWalls, selectedWalls }) => {
     });
   };
 
-  // 防护性检查，确保 selectedWalls 存在
+  // Defensive check to ensure selectedWalls exists
   if (!selectedWalls) {
     console.warn(
       "selectedWalls is undefined in WallList. Using default empty array."
@@ -25,8 +26,10 @@ const WallList = ({ walls, setSelectedWalls, selectedWalls }) => {
             <SelectableItem
               key={wall.id}
               text={`Corner - #${wall.id}`}
-              isSelected={false} // 默认未选中
+              isSelected={false} // Default to unselected
               onSelect={() => handleSelect(wall.id)}
+              className="wall-container"
+              textClassName="wall-text"
             />
           ))}
         </div>
@@ -43,6 +46,8 @@ const WallList = ({ walls, setSelectedWalls, selectedWalls }) => {
             text={`Corner - #${wall.id}`}
             isSelected={selectedWalls.includes(wall.id)}
             onSelect={() => handleSelect(wall.id)}
+            className="wall-container"
+            textClassName="wall-text"
           />
         ))}
       </div>

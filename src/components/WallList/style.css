@@ -1,53 +1,36 @@
-/* 父容器 flex 调整 */
+/* style.css */
+
+/* WallList specific styles */
+.wall-container {
+  width: 100px;
+  min-height: 20px;
+}
+
+/* Wall text */
+.wall-text {
+  font-size: 10px;
+  opacity: 0.5;
+}
+
+/* Parent container flex adjustments */
 .flex-obejct {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start; /* 让子元素顶部对齐 */
+  align-items: flex-start; /* Align items to the top */
   gap: 10px;
   width: 80%;
 }
 
-/* 墙体网格容器 */
+/* Wall grid container */
 .frame-13 {
   display: grid;
   grid-template-columns: repeat(
     auto-fit,
     minmax(80px, 1fr)
-  ); /* 自动换行，每行最多 4 个 */
+  ); /* Auto-wrap, max 4 per row */
   gap: 10px;
   width: 100%;
   margin-top: 10px;
-  align-content: flex-start; /* 让 grid 项目正确填充 */
-  min-height: fit-content; /* 防止高度塌陷 */
-}
-
-/* 单个墙体项 */
-.wall-container {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  width: 100px;
-  height: auto; /* 让容器自适应内容 */
-  position: relative; /* 让内部 absolute 组件有参照物 */
-  min-height: 20px; /* 确保不会塌陷 */
-}
-
-/* 墙体小方块 */
-.rectangle-4 {
-  border: 1px solid #afafaf;
-  border-radius: 2px;
-  height: 13px;
-  width: 13px;
-  position: relative; /* 修正 absolute 导致父级塌陷 */
-}
-
-/* 墙体文字 */
-.wall {
-  font-family: Arial, Helvetica, sans-serif;
-  color: #575757;
-  font-size: 10px;
-  font-weight: 400;
-  opacity: 0.5;
-  margin-left: 5px; /* 控制方块与文本间距 */
-  position: relative; /* 修正 absolute 导致父级塌陷 */
+  align-content: flex-start; /* Ensure grid items fill correctly */
+  min-height: fit-content; /* Prevent height collapse */
 }

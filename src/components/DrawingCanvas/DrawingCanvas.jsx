@@ -17,7 +17,7 @@ const DrawingCanvas = ({
   setRooms,
   rooms: parentRooms,
   selectedRoom,
-  setSelectedRoom, // 确保解构 setSelectedRoom
+  setSelectedRoom,
   refineMode,
 }) => {
   if (!drawingMode) return null;
@@ -27,16 +27,17 @@ const DrawingCanvas = ({
   const [dimensions, setDimensions] = useState({ width: 600, height: 800 });
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
-  const drawingsRef = useRef([]); // 存储所有绘制的图案（仅用于线段）
-  const [tempDrawing, setTempDrawing] = useState(null); // 存储临时绘制的图案
+  const drawingsRef = useRef([]); // Store all drawn shapes (only lines)
+  const [tempDrawing, setTempDrawing] = useState(null); // Store temporary drawing
   const [selectedShapeIndex, setSelectedShapeIndex] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [intersections, setIntersections] = useState([]);
-  const [rooms, setLocalRooms] = useState(parentRooms || []); // 房间列表，包含 metadata
-  const [isEditingRoomInfo, setIsEditingRoomInfo] = useState(false); // 控制信息框编辑状态
-  const [editingRoomInfo, setEditingRoomInfo] = useState({ name: "", id: "" }); // 临时存储编辑中的信息
+  const [rooms, setLocalRooms] = useState(parentRooms || []); // Room list with metadata
+  const [isEditingRoomInfo, setIsEditingRoomInfo] = useState(false); // Control info box edit state
+  const [editingRoomInfo, setEditingRoomInfo] = useState({ name: "", id: "" }); // Temporary edit info
   const [error, setError] = useState(null);
+  const [stageOffset, setStageOffset] = useState({ x: 0, y: 0 }); // For centering room
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -107,7 +108,21 @@ const DrawingCanvas = ({
 
   useEffect(() => {
     setLocalRooms(parentRooms || []);
-  }, [parentRooms]);
+    if (refineMode && selectedRoom !== null && rooms[selectedRoom]) {
+      const room = rooms[selectedRoom];
+      const bounds = getRoomBounds(room);
+      const centerX = (bounds.minX + bounds.maxX) / 2;
+      const centerY = (bounds.minY + bounds.maxY) / 2;
+      const stageCenterX = dimensions.width / 2;
+      const stageCenterY = dimensions.height / 2;
+      setStageOffset({
+        x: stageCenterX - centerX,
+        y: stageCenterY - centerY,
+      });
+    } else {
+      setStageOffset({ x: 0, y: 0 });
+    }
+  }, [parentRooms, refineMode, selectedRoom]);
 
   const snapToGrid = (x, y) => {
     if (!showGrid) return { x, y };
@@ -200,14 +215,17 @@ const DrawingCanvas = ({
           name: rooms[roomIndex]?.metadata?.name || "",
           id: rooms[roomIndex]?.metadata?.id || "",
         });
+        console.log("Selected room metadata:", rooms[roomIndex]?.metadata); // Debug log
         return;
       }
     }
 
-    if (drawingMode === "line" || drawingMode === "rectangle") {
+    if (refineMode) return;
+
+    if (drawingMode === "rectangle" && e.evt.which === 1 && !isDragging) {
       setIsDrawing(true);
       setStartPos(snapped);
-      console.log("DrawingCanvas: Started drawing at:", snapped);
+      console.log("DrawingCanvas: Started drawing rectangle at:", snapped);
     } else if (drawingMode === "select") {
       const foundIndex = drawingsRef.current.findIndex((shape) => {
         if (shape.type === "rectangle") {
@@ -231,6 +249,10 @@ const DrawingCanvas = ({
         setSelectedShapeIndex(null);
         console.log("DrawingCanvas: No shape selected.");
       }
+    } else if (drawingMode === "line") {
+      setIsDrawing(true);
+      setStartPos(snapped);
+      console.log("DrawingCanvas: Started drawing line at:", snapped);
     }
   };
 
@@ -301,7 +323,7 @@ const DrawingCanvas = ({
     const pos = stage.getPointerPosition();
     let snappedEnd = snapToGrid(pos.x, pos.y);
 
-    if (drawingMode === "rectangle") {
+    if (drawingMode === "rectangle" && !refineMode) {
       const currentShape = {
         type: "rectangle",
         start: startPos,
@@ -310,28 +332,31 @@ const DrawingCanvas = ({
       const snappedShape = snapToNearbyRectangle(currentShape);
       snappedEnd = snappedShape.end;
 
-      const points = [
-        { x: startPos.x, y: startPos.y },
-        { x: snappedEnd.x, y: startPos.y },
-        { x: snappedEnd.x, y: snappedEnd.y },
-        { x: startPos.x, y: snappedEnd.y },
-      ];
-      setRooms((prev) => [...prev, { points, metadata: { name: "", id: "" } }]);
-      setLocalRooms((prev) => [
-        ...prev,
-        { points, metadata: { name: "", id: "" } },
-      ]);
-      console.log("Rectangle added as room:", { points });
+      if (
+        Math.abs(snappedEnd.x - startPos.x) > 10 &&
+        Math.abs(snappedEnd.y - startPos.y) > 10
+      ) {
+        const points = [
+          { x: startPos.x, y: startPos.y },
+          { x: snappedEnd.x, y: startPos.y },
+          { x: snappedEnd.x, y: snappedEnd.y },
+          { x: startPos.x, y: snappedEnd.y },
+        ];
+        setRooms((prev) => [
+          ...prev,
+          { points, metadata: { name: "", id: "", category: [] } },
+        ]);
+        setLocalRooms((prev) => [
+          ...prev,
+          { points, metadata: { name: "", id: "", category: [] } },
+        ]);
+        console.log("Rectangle added as room:", { points });
+      }
+    } else if (drawingMode === "line" && !refineMode) {
+      let type = "line";
+      let finalEndX = snappedEnd.x;
+      let finalEndY = snappedEnd.y;
 
-      setTempDrawing(null);
-      return;
-    }
-
-    let type = "line";
-    let finalEndX = snappedEnd.x;
-    let finalEndY = snappedEnd.y;
-
-    if (drawingMode === "line") {
       if (
         selectedModes.includes("Horizontal") &&
         selectedModes.includes("Vertical")
@@ -348,21 +373,15 @@ const DrawingCanvas = ({
         finalEndX = startPos.x;
         finalEndY = stage.height();
       }
+
+      drawingsRef.current.push({
+        type,
+        start: startPos,
+        end: { x: finalEndX, y: finalEndY },
+      });
     }
 
-    drawingsRef.current.push({
-      type,
-      start: startPos,
-      end: { x: finalEndX, y: finalEndY },
-    });
-
     setTempDrawing(null);
-
-    console.log("DrawingCanvas: Finished drawing:", {
-      type,
-      start: startPos,
-      end: { x: finalEndX, y: finalEndY },
-    });
   };
 
   const deleteSelectedShape = () => {
@@ -722,15 +741,24 @@ const DrawingCanvas = ({
       const newRooms = [...prev];
       newRooms[index] = {
         ...newRooms[index],
-        metadata: { name: editingRoomInfo.name, id: editingRoomInfo.id },
+        metadata: {
+          name: editingRoomInfo.name,
+          id: editingRoomInfo.id,
+          category: rooms[index]?.metadata?.category || [],
+        },
       };
+      console.log("Saved room info:", newRooms[index]); // Debug log
       return newRooms;
     });
     setLocalRooms((prev) => {
       const newRooms = [...prev];
       newRooms[index] = {
         ...newRooms[index],
-        metadata: { name: editingRoomInfo.name, id: editingRoomInfo.id },
+        metadata: {
+          name: editingRoomInfo.name,
+          id: editingRoomInfo.id,
+          category: rooms[index]?.metadata?.category || [],
+        },
       };
       return newRooms;
     });
@@ -761,21 +789,6 @@ const DrawingCanvas = ({
     return { minX, minY, maxX, maxY };
   };
 
-  const scaleFactor = refineMode && selectedRoom !== null ? 2 : 1; // 放大系数
-  const roomToShow =
-    refineMode && selectedRoom !== null ? rooms[selectedRoom] : null;
-  const bounds = roomToShow
-    ? getRoomBounds(roomToShow)
-    : { minX: 0, minY: 0, maxX: dimensions.width, maxY: dimensions.height };
-  const offsetX =
-    refineMode && selectedRoom !== null
-      ? (-bounds.minX * (scaleFactor - 1)) / 2
-      : 0;
-  const offsetY =
-    refineMode && selectedRoom !== null
-      ? (-bounds.minY * (scaleFactor - 1)) / 2
-      : 0;
-
   if (error) return <div>Error in DrawingCanvas: {error.message}</div>;
 
   return (
@@ -791,25 +804,15 @@ const DrawingCanvas = ({
     >
       <Stage
         ref={stageRef}
-        width={
-          dimensions.width *
-          (refineMode && selectedRoom !== null ? scaleFactor : 1)
-        }
-        height={
-          dimensions.height *
-          (refineMode && selectedRoom !== null ? scaleFactor : 1)
-        }
+        width={dimensions.width}
+        height={dimensions.height}
         style={{
           position: "absolute",
           top: 0,
           left: 0,
           zIndex: isPicking ? 0 : 1,
           pointerEvents: isPicking ? "none" : "auto",
-          transformOrigin: "0 0",
-          transform:
-            refineMode && selectedRoom !== null
-              ? `scale(${scaleFactor}) translate(${offsetX}px, ${offsetY}px)`
-              : "none",
+          transform: `translate(${stageOffset.x}px, ${stageOffset.y}px)`,
         }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -875,7 +878,7 @@ const DrawingCanvas = ({
             return null;
           })}
 
-          {tempDrawing && (
+          {tempDrawing && !refineMode && (
             <>
               {tempDrawing.type === "line" && (
                 <Line
@@ -918,71 +921,13 @@ const DrawingCanvas = ({
             />
           ))}
 
-          {(!refineMode || selectedRoom === null) &&
-            rooms.map((room, index) => (
-              <React.Fragment key={index}>
-                <Shape
-                  roomIndex={index}
-                  sceneFunc={(context, shape) => {
-                    context.beginPath();
-                    const points = room.points;
-                    context.moveTo(points[0].x, points[0].y);
-                    for (let i = 1; i < points.length; i++) {
-                      context.lineTo(points[i].x, points[i].y);
-                    }
-                    context.closePath();
-                    context.fillStrokeShape(shape);
-                  }}
-                  fill={
-                    selectedRoom === index
-                      ? "rgba(0, 128, 255, 0.3)"
-                      : "rgba(0, 255, 0, 0.2)"
-                  }
-                  stroke={selectedRoom === index ? "blue" : "green"}
-                  strokeWidth={2}
-                  onClick={() => handleRoomClick(index)}
-                  onTap={() => handleRoomClick(index)}
-                />
-                {selectedRoom !== index &&
-                  room.metadata &&
-                  (room.metadata.name || room.metadata.id) && (
-                    <>
-                      <Rect
-                        x={getInfoBoxPosition(room).x - 5}
-                        y={getInfoBoxPosition(room).y - 5}
-                        width={120}
-                        height={24}
-                        fill="white"
-                        cornerRadius={5}
-                        shadowBlur={5}
-                        shadowOffset={{ x: 2, y: 2 }}
-                        shadowOpacity={0.3}
-                      />
-                      <Text
-                        x={getInfoBoxPosition(room).x}
-                        y={getInfoBoxPosition(room).y}
-                        text={`${room.metadata.name || "Unnamed"} (${
-                          room.metadata.id || "No ID"
-                        })`}
-                        fontSize={12}
-                        fill="black"
-                        fontStyle="bold"
-                      />
-                    </>
-                  )}
-              </React.Fragment>
-            ))}
-
-          {refineMode && selectedRoom !== null && roomToShow && (
-            <React.Fragment>
+          {rooms.map((room, index) => (
+            <React.Fragment key={index}>
               <Shape
-                roomIndex={selectedRoom}
+                roomIndex={index}
                 sceneFunc={(context, shape) => {
                   context.beginPath();
-                  const points = roomToShow.points.map((p) => ({
-                    x: p.x * scaleFactor,
-                    y: p.y * scaleFactor,
-                  }));
+                  const points = room.points;
                   context.moveTo(points[0].x, points[0].y);
                   for (let i = 1; i < points.length; i++) {
                     context.lineTo(points[i].x, points[i].y);
@@ -990,33 +935,72 @@ const DrawingCanvas = ({
                   context.closePath();
                   context.fillStrokeShape(shape);
                 }}
-                fill="rgba(0, 128, 255, 0.3)" // 高亮显示
-                stroke="blue"
-                strokeWidth={2}
+                fill={
+                  selectedRoom === index
+                    ? "rgba(0, 128, 255, 0.5)"
+                    : refineMode
+                    ? "rgba(0, 255, 0, 0.1)"
+                    : "rgba(0, 255, 0, 0.2)"
+                }
+                stroke={
+                  selectedRoom === index
+                    ? "blue"
+                    : refineMode
+                    ? "green"
+                    : "green"
+                }
+                strokeWidth={selectedRoom === index ? 4 : 2}
+                opacity={refineMode && selectedRoom !== index ? 0.3 : 1}
+                onClick={() => handleRoomClick(index)}
+                onTap={() => handleRoomClick(index)}
               />
-              <Rect
-                x={getInfoBoxPosition(roomToShow).x * scaleFactor - 5}
-                y={getInfoBoxPosition(roomToShow).y * scaleFactor - 5}
-                width={120}
-                height={24}
-                fill="white"
-                cornerRadius={5}
-                shadowBlur={5}
-                shadowOffset={{ x: 2, y: 2 }}
-                shadowOpacity={0.3}
-              />
-              <Text
-                x={getInfoBoxPosition(roomToShow).x * scaleFactor}
-                y={getInfoBoxPosition(roomToShow).y * scaleFactor}
-                text={`${roomToShow.metadata.name || "Unnamed"} (${
-                  roomToShow.metadata.id || "No ID"
-                })`}
-                fontSize={12}
-                fill="black"
-                fontStyle="bold"
-              />
+              {room.metadata && (
+                <>
+                  <Rect
+                    x={getInfoBoxPosition(room).x - 5}
+                    y={getInfoBoxPosition(room).y - 5}
+                    width={150}
+                    height={40 + (room.metadata.category?.length || 0) * 20}
+                    fill="white"
+                    cornerRadius={5}
+                    shadowBlur={5}
+                    shadowOffset={{ x: 2, y: 2 }}
+                    shadowOpacity={0.3}
+                  />
+                  <Text
+                    x={getInfoBoxPosition(room).x}
+                    y={getInfoBoxPosition(room).y}
+                    text={`${room.metadata.name || "Unnamed"} (${
+                      room.metadata.id || "No ID"
+                    })`}
+                    fontSize={12}
+                    fill="black"
+                    fontStyle="bold"
+                  />
+                  {(room.metadata.category || []).map((cat, i) => (
+                    <Text
+                      key={i}
+                      x={getInfoBoxPosition(room).x}
+                      y={getInfoBoxPosition(room).y + 20 + i * 20}
+                      text={cat}
+                      fontSize={12}
+                      fill="white"
+                      fontStyle="bold"
+                      align="center"
+                      width={140}
+                      padding={2}
+                      wrap="word"
+                      style={{
+                        backgroundColor: "#007bff",
+                        borderRadius: "5px",
+                        display: "inline-block",
+                      }}
+                    />
+                  ))}
+                </>
+              )}
             </React.Fragment>
-          )}
+          ))}
         </Layer>
       </Stage>
 
