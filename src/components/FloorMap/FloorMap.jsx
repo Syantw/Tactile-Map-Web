@@ -1,13 +1,12 @@
 import React, { Fragment, useState, useEffect, useRef } from "react";
 import { Stage, Layer, Line, Rect, Text } from "react-konva";
-import hull from "hull.js";
 import simplify from "simplify-js";
 
 const FloorMap = ({
   mapData,
   trimMode,
   setMapData,
-  showGrid = false,
+  showGrid = true,
   showWall = true,
   locations = [],
   highlightedLocation,
@@ -51,8 +50,7 @@ const FloorMap = ({
       isPicking,
       "showGrid:",
       showGrid,
-      "showWall:",
-      showWall
+      "showWall:"
     );
   }, [locations, activeInfoBox, isPicking, showGrid, showWall]);
 
@@ -247,37 +245,25 @@ const FloorMap = ({
       return [];
     }
     try {
-      let scaledPoints;
-      if (isFloor && pixels.length > 100) {
-        const pointCloud = [];
+      if (isFloor && pixels.length > 10) {
+        let pointCloud = [];
         for (let i = 0; i < pixels.length; i += 2) {
           pointCloud.push([
             pixels[i] * pixelSize * scale,
             pixels[i + 1] * pixelSize * scale,
           ]);
         }
-        scaledPoints = hull(pointCloud, 50).flat();
       } else {
         const wallPoints = [];
         for (let i = 0; i < pixels.length; i += 2) {
           wallPoints.push({ x: pixels[i], y: pixels[i + 1] });
         }
-        const simplified = simplify(wallPoints, 1, true);
-        const pointCloud = simplified.map((p) => [
+        const pointCloud = wallPoints.map((p) => [
           p.x * pixelSize * scale,
           p.y * pixelSize * scale,
         ]);
-        scaledPoints = hull(pointCloud, 30).flat();
       }
-      const dataWidth =
-        (Math.max(...pixels.filter((_, i) => i % 2 === 0)) - minX) *
-        pixelSize *
-        scale;
-      const dataHeight =
-        (Math.max(...pixels.filter((_, i) => i % 2 === 1)) - minY) *
-        pixelSize *
-        scale;
-      return scaledPoints.map((coord, i) => {
+      return pointCloud.map((coord, i) => {
         return i % 2 === 0
           ? coord - minX * pixelSize * scale + (canvasWidth - dataWidth) / 2
           : coord - minY * pixelSize * scale + (canvasHeight - dataHeight) / 2;
@@ -361,7 +347,7 @@ const FloorMap = ({
         </Stage>
       )}
 
-      {/* 主地图层 */}
+      {/* Main Map Layer */}
       <Stage
         width={canvasWidth}
         height={canvasHeight}
@@ -381,7 +367,7 @@ const FloorMap = ({
           {mapData.layers.map((layer, index) => {
             const points = getPoints(
               layer.pixels,
-              layer.type === "floor",
+              (layer.type === "segment" || layer.type === "floor"),
               scale,
               minX,
               minY
@@ -390,12 +376,12 @@ const FloorMap = ({
               <Line
                 key={index}
                 points={points}
-                stroke={layer.type === "floor" ? "#4682B4" : "#8B0000"}
-                strokeWidth={layer.type === "floor" ? 2 : 4}
+                stroke={layer.type === "segment" ? "#00000" : "#FF0000"}
+                strokeWidth={layer.type === "segment" ? 2 : 4}
                 fill={
-                  layer.type === "floor" ? "rgba(70, 130, 180, 0.3)" : "none"
+                  layer.type === "segment" ? "rgb(90, 119, 169)" : "none"
                 }
-                closed={layer.type === "floor"}
+                closed={layer.type === "segment"}
                 tension={layer.type === "wall" ? 0.2 : 0}
                 shadowColor="black"
                 shadowBlur={layer.type === "wall" ? 5 : 0}
@@ -449,7 +435,7 @@ const FloorMap = ({
                   fontFamily="Poppins"
                   fill="#000"
                   padding={15}
-                  backgroundColor="#fff"
+                  backgroundColor="#000"
                   cornerRadius={20}
                   shadowColor="#007AFF"
                   shadowBlur={10}

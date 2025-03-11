@@ -10,7 +10,7 @@ import "./style.css";
 export const MenubarAndContent = ({ className }) => {
   return (
     <div className={`menubar-and-content ${className}`}>
-      <Menubar className="menubar-instance" />
+      {/* <Menubar className="menubar-instance" /> */}
     </div>
   );
 };

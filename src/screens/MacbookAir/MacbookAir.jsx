@@ -91,43 +91,19 @@ export const MacbookAir = () => {
         <div className="frame">
           <div className="ui-overlay">
             <div className="screenUI">
-              <MenubarAndContent className="menubar-and-content-instance" />
-              <Switch className="switch-instance" state="off" text="3D" />
+              {/* <MenubarAndContent className="menubar-and-content-instance" /> */}
+              {/* <Switch className="switch-instance" state="off" text="3D" /> */}
             </div>
             <div className="rectangle-2" />
             <div className="group-2">
-              <Indicators
+              {/* <Indicators
                 className="indicators-instance"
                 ellipseClassName="indicators-4"
                 ellipseClassNameOverride="indicators-5"
                 groupClassName="indicators-2"
                 overlapGroupClassName="indicators-3"
                 property1="end"
-              />
-            </div>
-
-            <div className="group-3" />
-
-            <div className="group-4" />
-
-            <div className="overlap-group-wrapper">
-              <div className="overlap-3">
-                <div className="float-destinations">
-                  <div className="group-5" />
-
-                  <div className="frame-2">
-                    <div className="starting-point">Room</div>
-
-                    <div className="stark-tower">113</div>
-                  </div>
-                </div>
-
-                <img
-                  className="vector-2"
-                  alt="Vector"
-                  src="https://c.animaapp.com/UTvzRI5U/img/vector.svg"
-                />
-              </div>
+              /> */}
             </div>
           </div>
 
@@ -176,7 +152,7 @@ export const MacbookAir = () => {
 
             <div className="annotator_content">
               <ViewSelection
-                initialFileName="myhouse.JSON"
+                initialFileName="UploadFile"
                 setMapData={setMapData}
                 onViewChange={handleViewChange}
               />

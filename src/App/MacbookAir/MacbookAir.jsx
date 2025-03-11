@@ -121,7 +121,7 @@ export const MacbookAir = () => {
                         />
                       }
                     />
-                    <div className="frame-9">
+                    {/* <div className="frame-9">
                       <RadioGroupWrapper
                         className="radio-group-2"
                         radioGroupImg="/img/vector-21-5.svg"
@@ -134,7 +134,7 @@ export const MacbookAir = () => {
                         property1="default"
                         text="Trim"
                       />
-                    </div>
+                    </div> */}
                   </div>
 
                   <img
