@@ -39,7 +39,6 @@ export const FileUpload = ({
       fontWeight: 400,
       alignSelf: "stretch",
       display: "flex",
-      color: "var(--black)",
       letterSpacing: 0,
       lineHeight: "normal",
       opacity: 0.5,
